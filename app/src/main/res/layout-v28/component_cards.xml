@@ -15,11 +15,9 @@
 ~ limitations under the License.
 -->
 
-<androidx.constraintlayout.widget.ConstraintLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
+  android:layout_width="match_parent"
   android:layout_height="wrap_content"
   android:clipToPadding="false"
   android:paddingTop="@dimen/keyline_5"
@@ -42,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/deviceStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -54,7 +52,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/deviceName" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/deviceIp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -77,7 +75,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/guideline"
                 app:layout_constraintTop_toTopOf="@+id/deviceStatus" />
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/deviceName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

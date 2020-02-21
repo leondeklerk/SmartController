@@ -1,7 +1,6 @@
 package com.leondeklerk.smartcontroller;
 
 import android.os.AsyncTask;
-import android.util.Log;
 import com.leondeklerk.smartcontroller.data.Response;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -18,7 +17,7 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
 
   @Override
   protected void onPreExecute() {
-    //Switch processing animation (on)
+    // Switch processing animation (on)
   }
 
   /**
@@ -38,7 +37,7 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
    */
   @Override
   protected void onPostExecute(Response response) {
-    //Switch processing animation (off)
+    // Switch processing animation (off)
     callback.onFinish(response);
   }
 
