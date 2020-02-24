@@ -34,9 +34,7 @@
     android:layout_marginTop="16dp"
     android:layout_marginEnd="16dp"
     android:hint="IP"
-    app:counterEnabled="true"
-    app:counterMaxLength="15"
-    app:helperText="xxx.xxx.xxx.xxx"
+    app:helperText="255.255.255.255"
     app:helperTextEnabled="true"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
@@ -44,6 +42,8 @@
 
     <com.google.android.material.textfield.TextInputEditText
       android:layout_width="match_parent"
+      android:digits="0123456789."
+      android:inputType="number|numberDecimal"
       android:layout_height="wrap_content"
       android:singleLine="true" />
   </com.google.android.material.textfield.TextInputLayout>

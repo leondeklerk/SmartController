@@ -2,6 +2,8 @@ package com.leondeklerk.smartcontroller;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -11,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
 import com.leondeklerk.smartcontroller.data.DeviceData;
 import com.leondeklerk.smartcontroller.data.Response;
@@ -61,6 +64,33 @@ public class MainActivity extends AppCompatActivity
             AlertDialog dialog = dialogBuilder.create();
             final View dialogView =
                 dialog.getLayoutInflater().inflate(R.layout.device_dialog, layout);
+            TextInputLayout ipText = dialogView.findViewById(R.id.newIp);
+            InputFilter[] filters = new InputFilter[1];
+            filters[0] = new InputFilter() {
+              @Override
+              public CharSequence filter(CharSequence source, int start,
+                  int end, Spanned dest, int dstart, int dend) {
+                if (end > start) {
+                  String destTxt = dest.toString();
+                  String resultingTxt = destTxt.substring(0, dstart) +
+                      source.subSequence(start, end) +
+                      destTxt.substring(dend);
+                  if (!resultingTxt.matches("^\\d{1,3}(\\." +
+                      "(\\d{1,3}(\\.(\\d{1,3}(\\.(\\d{1,3})?)?)?)?)?)?")) {
+                    return "";
+                  } else {
+                    String[] splits = resultingTxt.split("\\.");
+                    for (int i = 0; i < splits.length; i++) {
+                      if (Integer.valueOf(splits[i]) > 255) {
+                        return "";
+                      }
+                    }
+                  }
+                }
+                return null;
+              }
+            };
+            ipText.getEditText().setFilters(filters);
             SwitchMaterial credentials = dialogView.findViewById(R.id.switchCredentials);
             credentials.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
