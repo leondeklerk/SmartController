@@ -3,7 +3,6 @@ package com.leondeklerk.smartcontroller;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.InputFilter;
-import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -18,6 +17,7 @@ import com.google.android.material.textview.MaterialTextView;
 import com.leondeklerk.smartcontroller.data.DeviceData;
 import com.leondeklerk.smartcontroller.data.Response;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
+import com.leondeklerk.smartcontroller.utils.IpInputFilter;
 import com.leondeklerk.smartcontroller.widget.ColorDotView;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +34,10 @@ public class MainActivity extends AppCompatActivity
     setContentView(R.layout.activity_main);
     context = this;
     //    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-    DeviceData data = new DeviceData(0, "192.168.1.217", "LED Socket", "LDK.Tasmota2020", "admin");
+    DeviceData data =
+        new DeviceData(0, "192.168.1.217", "LED Socket", true)
+            .setPassword("LDK.Tasmota2020")
+            .setUsername("admin");
     device = new SmartDevice(data);
 
     ColorDotView colorDotView = findViewById(R.id.statusLed);
@@ -49,58 +52,15 @@ public class MainActivity extends AppCompatActivity
         .setText(getString(R.string.device_name, data.getName()));
     ledToggle = (findViewById(R.id.deviceCard)).findViewById(R.id.devicePower);
     ledToggle.setOnCheckedChangeListener(this);
+
+    // The Floating action button to launch a dialog where new device can be created
     FloatingActionButton fab = findViewById(R.id.fab);
     fab.setOnClickListener(
         new View.OnClickListener() {
           @Override
           public void onClick(View v) {
-            FrameLayout layout = new FrameLayout(v.getContext());
-            MaterialAlertDialogBuilder dialogBuilder =
-                new MaterialAlertDialogBuilder(v.getContext())
-                    .setTitle("Add new Device")
-                    .setView(layout)
-                    .setPositiveButton("add", null)
-                    .setNegativeButton("Cancel", null);
-            AlertDialog dialog = dialogBuilder.create();
-            final View dialogView =
-                dialog.getLayoutInflater().inflate(R.layout.device_dialog, layout);
-            TextInputLayout ipText = dialogView.findViewById(R.id.newIp);
-            InputFilter[] filters = new InputFilter[1];
-            filters[0] = new InputFilter() {
-              @Override
-              public CharSequence filter(CharSequence source, int start,
-                  int end, Spanned dest, int dstart, int dend) {
-                if (end > start) {
-                  String destTxt = dest.toString();
-                  String resultingTxt = destTxt.substring(0, dstart) +
-                      source.subSequence(start, end) +
-                      destTxt.substring(dend);
-                  if (!resultingTxt.matches("^\\d{1,3}(\\." +
-                      "(\\d{1,3}(\\.(\\d{1,3}(\\.(\\d{1,3})?)?)?)?)?)?")) {
-                    return "";
-                  } else {
-                    String[] splits = resultingTxt.split("\\.");
-                    for (int i = 0; i < splits.length; i++) {
-                      if (Integer.valueOf(splits[i]) > 255) {
-                        return "";
-                      }
-                    }
-                  }
-                }
-                return null;
-              }
-            };
-            ipText.getEditText().setFilters(filters);
-            SwitchMaterial credentials = dialogView.findViewById(R.id.switchCredentials);
-            credentials.setOnCheckedChangeListener(
-                new CompoundButton.OnCheckedChangeListener() {
-                  @Override
-                  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    dialogView.findViewById(R.id.newUsername).setEnabled(isChecked);
-                    dialogView.findViewById(R.id.newPassword).setEnabled(isChecked);
-                  }
-                });
-            dialog.show();
+            AlertDialog addDeviceDialog = createDeviceDialog(v);
+            addDeviceDialog.show();
           }
         });
   }
@@ -141,18 +101,49 @@ public class MainActivity extends AppCompatActivity
     ledToggle.setOnCheckedChangeListener(this);
   }
 
+  @Override
+  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    Log.d("Switch", "Clicked");
+    NetworkTask task = new NetworkTask((NetworkCallback) context);
+    task.execute(device.getCommand(device.turnOn(isChecked)));
+  }
+
+  public AlertDialog createDeviceDialog(View v) {
+    FrameLayout layout = new FrameLayout(v.getContext());
+
+    AlertDialog dialog =
+        new MaterialAlertDialogBuilder(v.getContext())
+            .setTitle("Add new Device")
+            .setView(layout)
+            .setPositiveButton("add", null)
+            .setNegativeButton("Cancel", null)
+            .create();
+
+    final View dialogView = dialog.getLayoutInflater().inflate(R.layout.device_dialog, layout);
+
+    // The InputLayout always has a EditText since this is supplied with the layout
+    TextInputLayout ipText = dialogView.findViewById(R.id.newIp);
+    //noinspection ConstantConditions
+    ipText.getEditText().setFilters(new InputFilter[]{new IpInputFilter()});
+
+    // Add a listener to the switch to enable / disable
+    SwitchMaterial credentials = dialogView.findViewById(R.id.switchCredentials);
+    credentials.setOnCheckedChangeListener(
+        new CompoundButton.OnCheckedChangeListener() {
+          @Override
+          public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            dialogView.findViewById(R.id.newUsername).setEnabled(isChecked);
+            dialogView.findViewById(R.id.newPassword).setEnabled(isChecked);
+          }
+        });
+    return dialog;
+  }
+
   public void setVisibility(View view, boolean on) {
     if (on) {
       view.setVisibility(View.VISIBLE);
     } else {
       view.setVisibility(View.INVISIBLE);
     }
-  }
-
-  @Override
-  public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-    Log.d("Switch", "Clicked");
-    NetworkTask task = new NetworkTask((NetworkCallback) context);
-    task.execute(device.getCommand(device.turnOn(isChecked)));
   }
 }

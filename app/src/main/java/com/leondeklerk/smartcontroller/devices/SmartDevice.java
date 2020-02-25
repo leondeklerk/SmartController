@@ -10,9 +10,12 @@ public class SmartDevice {
   }
 
   public String getCommand(String command) {
-    return String.format(
-        "http://%s/cm?&user=%s&password=%s&cmnd=%s",
-        data.getIp(), data.getUsername(), data.getPassword(), command);
+    if (data.isProtected()) {
+      return String.format(
+          "http://%s/cm?&user=%s&password=%s&cmnd=%s",
+          data.getIp(), data.getUsername(), data.getPassword(), command);
+    }
+    return String.format("http://%s/cm?&cmnd=%s", data.getIp(), command);
   }
 
   public String getPowerStatus() {
