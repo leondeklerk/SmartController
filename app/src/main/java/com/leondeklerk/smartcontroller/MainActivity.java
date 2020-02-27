@@ -1,16 +1,19 @@
 package com.leondeklerk.smartcontroller;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.Adapter;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -20,13 +23,14 @@ import com.leondeklerk.smartcontroller.data.DeviceData;
 import com.leondeklerk.smartcontroller.data.Response;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.IpInputFilter;
+import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
 import com.leondeklerk.smartcontroller.widget.ColorDotView;
 import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
-    implements NetworkCallback, CompoundButton.OnCheckedChangeListener {
+    implements NetworkCallback, CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
   private RecyclerView recyclerView;
   private RecyclerView.Adapter mAdapter;
@@ -34,6 +38,9 @@ public class MainActivity extends AppCompatActivity
   SwitchMaterial ledToggle;
   Context context;
   SmartDevice device;
+  ArrayList<SmartDevice> devices;
+  TextInputLayoutUtils layoutUtils;
+  AlertDialog addDeviceDialog;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -42,9 +49,9 @@ public class MainActivity extends AppCompatActivity
     context = this;
     //    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
     DeviceData data =
-        new DeviceData(0, "192.168.1.217", "LED Socket", true)
-            .setPassword("LDK.Tasmota2020")
-            .setUsername("admin");
+        new DeviceData(0, "LED Socket", "192.168.1.217", true)
+            .setUsername("admin")
+            .setPassword("LDK.Tasmota2020");
     device = new SmartDevice(data);
 
     recyclerView = findViewById(R.id.deviceList);
@@ -58,9 +65,9 @@ public class MainActivity extends AppCompatActivity
     recyclerView.setLayoutManager(layoutManager);
 
     // specify an adapter (see also next example)
-    ArrayList<SmartDevice> devices = new ArrayList<>();
+    devices = new ArrayList<>();
     devices.add(device);
-    mAdapter = new MyAdapter(devices);
+    Adapter mAdapter = new DeviceAdapter(devices);
     recyclerView.setAdapter(mAdapter);
 
     ColorDotView colorDotView = findViewById(R.id.statusLed);
@@ -82,8 +89,10 @@ public class MainActivity extends AppCompatActivity
         new View.OnClickListener() {
           @Override
           public void onClick(View v) {
-            AlertDialog addDeviceDialog = createDeviceDialog(v);
+            addDeviceDialog = createDeviceDialog(v);
             addDeviceDialog.show();
+            Button button = addDeviceDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            button.setOnClickListener((View.OnClickListener) context);
           }
         });
   }
@@ -124,6 +133,10 @@ public class MainActivity extends AppCompatActivity
     ledToggle.setOnCheckedChangeListener(this);
   }
 
+  /**
+   * @param buttonView
+   * @param isChecked
+   */
   @Override
   public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
     Log.d("Switch", "Clicked");
@@ -131,11 +144,16 @@ public class MainActivity extends AppCompatActivity
     task.execute(device.getCommand(device.turnOn(isChecked)));
   }
 
+  /**
+   * @param v
+   * @return
+   */
   public AlertDialog createDeviceDialog(View v) {
     FrameLayout layout = new FrameLayout(v.getContext());
 
     AlertDialog dialog =
-        new MaterialAlertDialogBuilder(v.getContext())
+        new MaterialAlertDialogBuilder(
+            v.getContext(), R.style.MaterialAlertDialog_FilledButtonDialog)
             .setTitle("Add new Device")
             .setView(layout)
             .setPositiveButton("add", null)
@@ -144,10 +162,15 @@ public class MainActivity extends AppCompatActivity
 
     final View dialogView = dialog.getLayoutInflater().inflate(R.layout.device_dialog, layout);
 
-    // The InputLayout always has a EditText since this is supplied with the layout
-    TextInputLayout ipText = dialogView.findViewById(R.id.newIp);
+    TextInputLayout nameLayout = dialogView.findViewById(R.id.newName);
+    final TextInputLayout ipLayout = dialogView.findViewById(R.id.newIp);
+    ArrayList<TextInputLayout> layouts = new ArrayList<>();
+    layouts.add(nameLayout);
+    layouts.add(ipLayout);
+    layoutUtils = new TextInputLayoutUtils(layouts, context);
+
     //noinspection ConstantConditions
-    ipText.getEditText().setFilters(new InputFilter[]{new IpInputFilter()});
+    ipLayout.getEditText().setFilters(new InputFilter[]{new IpInputFilter()});
 
     // Add a listener to the switch to enable / disable
     SwitchMaterial credentials = dialogView.findViewById(R.id.switchCredentials);
@@ -155,18 +178,57 @@ public class MainActivity extends AppCompatActivity
         new CompoundButton.OnCheckedChangeListener() {
           @Override
           public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            dialogView.findViewById(R.id.newUsername).setEnabled(isChecked);
-            dialogView.findViewById(R.id.newPassword).setEnabled(isChecked);
+            setCredentialsAvailability(dialogView, isChecked);
           }
         });
+    layoutUtils.setErrorListeners();
     return dialog;
   }
 
+  /**
+   * @param dialogView
+   * @param isChecked
+   */
+  public void setCredentialsAvailability(View dialogView, boolean isChecked) {
+    TextInputLayout usernameLayout = dialogView.findViewById(R.id.newUsername);
+    usernameLayout.setEnabled(isChecked);
+    TextInputLayout passwordLayout = dialogView.findViewById(R.id.newPassword);
+    passwordLayout.setEnabled(isChecked);
+
+    if (isChecked) {
+      layoutUtils.addLayout(usernameLayout);
+      layoutUtils.addLayout(passwordLayout);
+    } else {
+      layoutUtils.removeLayout(usernameLayout);
+      layoutUtils.removeLayout(passwordLayout);
+    }
+    layoutUtils.setErrorListeners();
+  }
+
+  /**
+   * @param view
+   * @param on
+   */
   public void setVisibility(View view, boolean on) {
     if (on) {
       view.setVisibility(View.VISIBLE);
     } else {
       view.setVisibility(View.INVISIBLE);
+    }
+  }
+
+  @Override
+  public void onClick(View v) {
+    if (!layoutUtils.hasErrors()) {
+      addDeviceDialog.dismiss();
+      SwitchMaterial switchMaterial = addDeviceDialog.findViewById(R.id.switchCredentials);
+      boolean isProtected = switchMaterial.isChecked();
+
+      SmartDevice device = layoutUtils.readDevice(isProtected, devices.size());
+      devices.add(device);
+
+      Adapter mAdapter = new DeviceAdapter(devices);
+      recyclerView.setAdapter(mAdapter);
     }
   }
 }

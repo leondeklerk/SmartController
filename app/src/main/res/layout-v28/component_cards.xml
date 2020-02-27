@@ -46,7 +46,7 @@
           android:layout_width="10dp"
           android:layout_height="10dp"
           android:layout_gravity="end|center_vertical"
-          app:colorFillColor="#FF0000"
+          app:colorFillColor="@color/status_off"
           app:layout_constraintBottom_toBottomOf="@+id/deviceStatus"
           app:layout_constraintEnd_toStartOf="@+id/guideline"
           app:layout_constraintTop_toTopOf="@+id/deviceStatus" />

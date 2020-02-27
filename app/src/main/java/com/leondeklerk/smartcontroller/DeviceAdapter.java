@@ -1,14 +1,13 @@
 package com.leondeklerk.smartcontroller;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import java.util.ArrayList;
 
-public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
+public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.MyViewHolder> {
 
   private ArrayList<SmartDevice> devices;
 
@@ -27,17 +26,18 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
   }
 
   // Provide a suitable constructor (depends on the kind of dataset)
-  public MyAdapter(ArrayList<SmartDevice> devices) {
+  public DeviceAdapter(ArrayList<SmartDevice> devices) {
     this.devices = devices;
   }
 
   // Create new views (invoked by the layout manager)
   @Override
-  public MyAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent,
-      int viewType) {
+  public DeviceAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     // create a new view
-    MaterialCardView v = (MaterialCardView) LayoutInflater.from(parent.getContext())
-        .inflate(R.layout.component_cards, parent, false);
+    MaterialCardView v =
+        (MaterialCardView)
+            LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.component_cards, parent, false);
     return new MyViewHolder(v);
   }
 
@@ -50,13 +50,5 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
   @Override
   public int getItemCount() {
     return devices.size();
-  }
-
-  public void setVisibility(View view, boolean on) {
-    if (on) {
-      view.setVisibility(View.VISIBLE);
-    } else {
-      view.setVisibility(View.INVISIBLE);
-    }
   }
 }

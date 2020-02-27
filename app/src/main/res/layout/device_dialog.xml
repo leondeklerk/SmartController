@@ -15,6 +15,8 @@
     android:hint="NAME"
     app:counterEnabled="true"
     app:counterMaxLength="32"
+    app:errorEnabled="true"
+    app:helperTextEnabled="true"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent">
@@ -22,6 +24,7 @@
     <com.google.android.material.textfield.TextInputEditText
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:importantForAutofill="noExcludeDescendants"
       android:singleLine="true" />
   </com.google.android.material.textfield.TextInputLayout>
 
@@ -34,6 +37,7 @@
     android:layout_marginTop="16dp"
     android:layout_marginEnd="16dp"
     android:hint="IP"
+    app:errorEnabled="true"
     app:helperText="255.255.255.255"
     app:helperTextEnabled="true"
     app:layout_constraintEnd_toEndOf="parent"
@@ -42,9 +46,9 @@
 
     <com.google.android.material.textfield.TextInputEditText
       android:layout_width="match_parent"
+      android:layout_height="wrap_content"
       android:digits="0123456789."
       android:inputType="number|numberDecimal"
-      android:layout_height="wrap_content"
       android:singleLine="true" />
   </com.google.android.material.textfield.TextInputLayout>
 
@@ -60,6 +64,8 @@
     android:hint="Username"
     app:counterEnabled="true"
     app:counterMaxLength="32"
+    app:errorEnabled="true"
+    app:helperTextEnabled="true"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toBottomOf="@+id/switchCredentials">
@@ -83,6 +89,8 @@
     app:counterEnabled="true"
     app:counterMaxLength="32"
     app:endIconMode="password_toggle"
+    app:errorEnabled="true"
+    app:helperTextEnabled="true"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toBottomOf="@+id/newUsername">

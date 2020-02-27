@@ -10,7 +10,7 @@ import java.net.URL;
 public class NetworkTask extends AsyncTask<String, Integer, Response> {
   private NetworkCallback callback;
 
-  public NetworkTask(NetworkCallback callback) {
+  NetworkTask(NetworkCallback callback) {
     super();
     this.callback = callback;
   }

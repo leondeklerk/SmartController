@@ -81,4 +81,9 @@
         <item name="colorAccent">?colorSecondary</item>
     </style>
 
+  <style name="MaterialAlertDialog.FilledButtonDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+    <item name="buttonBarPositiveButtonStyle">@style/MaterialAlertDialog.FilledButtonDialog.Button
+    </item>
+  </style>
+
 </resources>

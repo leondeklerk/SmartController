@@ -25,10 +25,10 @@ public class DeviceData {
   @Accessors(chain = true)
   private String username;
 
-  public DeviceData(int id, String ip, String name, boolean isProtected) {
+  public DeviceData(int id, String name, String ip, boolean isProtected) {
     this.id = id;
-    this.ip = ip;
     this.name = name;
+    this.ip = ip;
     this.isProtected = isProtected;
   }
 }
