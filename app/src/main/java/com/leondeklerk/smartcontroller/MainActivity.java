@@ -9,6 +9,8 @@ import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -19,11 +21,16 @@ import com.leondeklerk.smartcontroller.data.Response;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.IpInputFilter;
 import com.leondeklerk.smartcontroller.widget.ColorDotView;
+import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
     implements NetworkCallback, CompoundButton.OnCheckedChangeListener {
+
+  private RecyclerView recyclerView;
+  private RecyclerView.Adapter mAdapter;
+  private RecyclerView.LayoutManager layoutManager;
   SwitchMaterial ledToggle;
   Context context;
   SmartDevice device;
@@ -39,6 +46,22 @@ public class MainActivity extends AppCompatActivity
             .setPassword("LDK.Tasmota2020")
             .setUsername("admin");
     device = new SmartDevice(data);
+
+    recyclerView = findViewById(R.id.deviceList);
+
+    // use this setting to improve performance if you know that changes
+    // in content do not change the layout size of the RecyclerView
+    recyclerView.setHasFixedSize(true);
+
+    // use a linear layout manager
+    layoutManager = new LinearLayoutManager(this);
+    recyclerView.setLayoutManager(layoutManager);
+
+    // specify an adapter (see also next example)
+    ArrayList<SmartDevice> devices = new ArrayList<>();
+    devices.add(device);
+    mAdapter = new MyAdapter(devices);
+    recyclerView.setAdapter(mAdapter);
 
     ColorDotView colorDotView = findViewById(R.id.statusLed);
     setVisibility(colorDotView, false);

@@ -1,8 +1,11 @@
 package com.leondeklerk.smartcontroller.devices;
 
 import com.leondeklerk.smartcontroller.data.DeviceData;
+import lombok.Getter;
 
 public class SmartDevice {
+
+  @Getter
   private DeviceData data;
 
   public SmartDevice(DeviceData data) {

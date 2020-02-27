@@ -1,127 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-~ Copyright (C) 2019 The Android Open Source Project
-~
-~ Licensed under the Apache License, Version 2.0 (the "License");
-~ you may not use this file except in compliance with the License.
-~ You may obtain a copy of the License at
-~
-~      http://www.apache.org/licenses/LICENSE-2.0
-~
-~ Unless required by applicable law or agreed to in writing, software
-~ distributed under the License is distributed on an "AS IS" BASIS,
-~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-~ See the License for the specific language governing permissions and
-~ limitations under the License.
--->
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:id="@+id/deviceCard"
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
-  android:clipToPadding="false"
-  android:paddingTop="@dimen/keyline_5"
-  android:paddingBottom="@dimen/keyline_5"
-  android:paddingStart="@dimen/keyline_4"
-  android:paddingEnd="@dimen/keyline_4">
+  android:layout_marginLeft="16dp"
+  android:layout_marginTop="8dp"
+  android:layout_marginRight="16dp"
+  android:layout_marginBottom="8dp"
+  android:clickable="true">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/deviceCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:clickable="true"
-        app:cardElevation="2dp"
-        app:layout_constraintTop_toTopOf="parent">
+    <androidx.constraintlayout.widget.ConstraintLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@+id/deviceStatus"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="16dp"
+          android:layout_marginTop="8dp"
+          android:alpha="?alphaEmphasisMedium"
+          android:text="@string/device_status"
+          android:textAppearance="?textAppearanceOverline"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@+id/deviceName" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/deviceStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:alpha="?alphaEmphasisMedium"
-                android:text="@string/device_status"
-                android:textAppearance="?textAppearanceOverline"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/deviceName" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/deviceIp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:alpha="?alphaEmphasisMedium"
-                android:text="@string/device_ip"
-                android:textAppearance="?textAppearanceOverline"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/deviceStatus" />
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@+id/deviceIp"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="16dp"
+          android:layout_marginTop="8dp"
+          android:alpha="?alphaEmphasisMedium"
+          android:text="@string/device_ip"
+          android:textAppearance="?textAppearanceOverline"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@+id/deviceStatus" />
 
 
-            <com.leondeklerk.smartcontroller.widget.ColorDotView
-                android:id="@+id/statusLed"
-                android:layout_width="10dp"
-                android:layout_height="10dp"
-                android:layout_gravity="end|center_vertical"
-                app:colorFillColor="#FF0000"
-                app:layout_constraintBottom_toBottomOf="@+id/deviceStatus"
-                app:layout_constraintEnd_toStartOf="@+id/guideline"
-                app:layout_constraintTop_toTopOf="@+id/deviceStatus" />
+        <com.leondeklerk.smartcontroller.widget.ColorDotView
+          android:id="@+id/statusLed"
+          android:layout_width="10dp"
+          android:layout_height="10dp"
+          android:layout_gravity="end|center_vertical"
+          app:colorFillColor="#FF0000"
+          app:layout_constraintBottom_toBottomOf="@+id/deviceStatus"
+          app:layout_constraintEnd_toStartOf="@+id/guideline"
+          app:layout_constraintTop_toTopOf="@+id/deviceStatus" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/deviceName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:alpha="?alphaEmphasisHigh"
-                android:text="@string/device_name"
-                android:textAppearance="?textAppearanceHeadline6"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <com.google.android.material.textview.MaterialTextView
+          android:id="@+id/deviceName"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginStart="16dp"
+          android:layout_marginTop="8dp"
+          android:alpha="?alphaEmphasisHigh"
+          android:text="@string/device_name"
+          android:textAppearance="?textAppearanceHeadline6"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/devicePower"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
-                android:checked="false"
-                android:paddingTop="-4dp"
-                app:layout_constraintBottom_toTopOf="@+id/deviceEdit"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+        <com.google.android.material.switchmaterial.SwitchMaterial
+          android:id="@+id/devicePower"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:layout_marginEnd="8dp"
+          android:checked="false"
+          android:paddingTop="-4dp"
+          app:layout_constraintBottom_toTopOf="@+id/deviceEdit"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.chip.Chip
-                android:id="@+id/deviceEdit"
-                style="@style/Widget.MaterialComponents.Chip.Action"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|start"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="8dp"
-                android:ellipsize="end"
-                android:text="@string/device_edit"
-                app:chipIcon="@drawable/ic_settings_24px"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+        <com.google.android.material.chip.Chip
+          android:id="@+id/deviceEdit"
+          style="@style/Widget.MaterialComponents.Chip.Action"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_gravity="center_vertical|start"
+          android:layout_marginEnd="8dp"
+          android:layout_marginBottom="8dp"
+          android:ellipsize="end"
+          android:text="@string/device_edit"
+          app:chipIcon="@drawable/ic_settings_24px"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toEndOf="parent" />
 
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_begin="111dp" />
+        <androidx.constraintlayout.widget.Guideline
+          android:id="@+id/guideline"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:orientation="vertical"
+          app:layout_constraintGuide_begin="111dp" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </com.google.android.material.card.MaterialCardView>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
