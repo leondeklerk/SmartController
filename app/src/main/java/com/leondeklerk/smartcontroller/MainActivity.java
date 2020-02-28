@@ -104,13 +104,14 @@ public class MainActivity extends AppCompatActivity
       devicePower.setChecked(false);
       deviceLed.setVisibility(View.INVISIBLE);
     } else {
-      deviceLed.setVisibility(View.VISIBLE);
-      String statusString = null;
+      String statusString;
       try {
         JSONObject obj = new JSONObject(response.getResponse());
         statusString = obj.getString("POWER");
       } catch (JSONException e) {
         e.printStackTrace();
+        Log.d("JSON Response", response.getResponse());
+        return;
       }
       if (statusString.equals("ON")) {
         if (!devicePower.isChecked()) {
@@ -125,6 +126,7 @@ public class MainActivity extends AppCompatActivity
       }
       devicePower.setEnabled(true);
       deviceStatus.setText(getString(R.string.device_status, statusString));
+      deviceLed.setVisibility(View.VISIBLE);
       Log.d("Response", response.getResponse());
     }
   }
