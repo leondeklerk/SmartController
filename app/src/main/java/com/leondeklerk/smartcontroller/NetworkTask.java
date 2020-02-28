@@ -23,9 +23,7 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
     // Switch processing animation (on)
   }
 
-  /**
-   * Defines work to perform on the background thread.
-   */
+  /** Defines work to perform on the background thread. */
   @Override
   protected Response doInBackground(String... urls) {
     Response response = null;
@@ -35,9 +33,7 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
     return response;
   }
 
-  /**
-   * Updates the DownloadCallback with the result.
-   */
+  /** Updates the DownloadCallback with the result. */
   @Override
   protected void onPostExecute(Response response) {
     // Switch processing animation (off)

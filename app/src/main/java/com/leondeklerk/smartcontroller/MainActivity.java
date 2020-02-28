@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity
 
     AlertDialog dialog =
         new MaterialAlertDialogBuilder(
-            v.getContext(), R.style.MaterialAlertDialog_FilledButtonDialog)
+                v.getContext(), R.style.MaterialAlertDialog_FilledButtonDialog)
             .setTitle(getString(R.string.add_device_title))
             .setView(layout)
             .setPositiveButton(getString(R.string.add_button_confirm), null)
@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity
     layoutUtils = new TextInputLayoutUtils(layouts, context);
 
     //noinspection ConstantConditions
-    ipLayout.getEditText().setFilters(new InputFilter[]{new IpInputFilter()});
+    ipLayout.getEditText().setFilters(new InputFilter[] {new IpInputFilter()});
 
     // Add a listener to the switch to enable / disable
     SwitchMaterial credentials = dialogView.findViewById(R.id.switchCredentials);

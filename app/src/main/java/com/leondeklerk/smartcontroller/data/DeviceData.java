@@ -6,14 +6,10 @@ import lombok.experimental.Accessors;
 
 public class DeviceData {
 
-  @Getter
-  private int id;
-  @Getter
-  private String ip;
-  @Getter
-  private String name;
-  @Getter
-  private boolean isProtected;
+  @Getter private int id;
+  @Getter private String ip;
+  @Getter private String name;
+  @Getter private boolean isProtected;
 
   @Getter
   @Setter

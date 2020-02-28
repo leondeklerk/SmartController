@@ -5,8 +5,7 @@ import lombok.Getter;
 
 public class SmartDevice {
 
-  @Getter
-  private DeviceData data;
+  @Getter private DeviceData data;
 
   public SmartDevice(DeviceData data) {
     this.data = data;
