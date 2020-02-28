@@ -70,7 +70,8 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
     statusLed.setVisibility(View.INVISIBLE);
 
     MaterialTextView deviceStatus = holder.cardView.findViewById(R.id.deviceStatus);
-    deviceStatus.setText(resources.getString(R.string.status_unknown));
+    deviceStatus.setText(
+        resources.getString(R.string.device_status, resources.getString(R.string.status_unknown)));
 
     MaterialTextView deviceIp = holder.cardView.findViewById(R.id.deviceIp);
     deviceIp.setText(resources.getString(R.string.device_ip, data.getIp()));

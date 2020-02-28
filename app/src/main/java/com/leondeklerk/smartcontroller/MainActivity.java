@@ -11,9 +11,10 @@ import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.DiffUtil.DiffResult;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.RecyclerView.Adapter;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -24,6 +25,7 @@ import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
 import com.leondeklerk.smartcontroller.data.DeviceData;
 import com.leondeklerk.smartcontroller.data.Response;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
+import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
 import com.leondeklerk.smartcontroller.utils.IpInputFilter;
 import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
 import com.leondeklerk.smartcontroller.widget.ColorDotView;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity
     implements NetworkCallback, View.OnClickListener {
 
   private RecyclerView recyclerView;
+  DeviceAdapter deviceAdapter;
   Context context;
   SmartDevice device;
   ArrayList<SmartDevice> devices;
@@ -66,8 +69,8 @@ public class MainActivity extends AppCompatActivity
     // specify an adapter (see also next example)
     devices = new ArrayList<>();
     devices.add(device);
-    Adapter mAdapter = new DeviceAdapter(devices, context);
-    recyclerView.setAdapter(mAdapter);
+    deviceAdapter = new DeviceAdapter(devices, context);
+    recyclerView.setAdapter(deviceAdapter);
 
     // The Floating action button to launch a dialog where new device can be created
     FloatingActionButton fab = findViewById(R.id.fab);
@@ -193,12 +196,14 @@ public class MainActivity extends AppCompatActivity
       addDeviceDialog.dismiss();
       SwitchMaterial switchMaterial = addDeviceDialog.findViewById(R.id.switchCredentials);
       boolean isProtected = switchMaterial.isChecked();
-
       SmartDevice device = layoutUtils.readDevice(isProtected, devices.size());
-      devices.add(device);
-
-      Adapter mAdapter = new DeviceAdapter(devices, context);
-      recyclerView.setAdapter(mAdapter);
+      ArrayList<SmartDevice> newList = new ArrayList<>(devices);
+      newList.add(device);
+      DiffUtilCallback diffUtilCallback = new DiffUtilCallback(devices, newList);
+      DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
+      devices.clear();
+      devices.addAll(newList);
+      diff.dispatchUpdatesTo(deviceAdapter);
     }
   }
 }

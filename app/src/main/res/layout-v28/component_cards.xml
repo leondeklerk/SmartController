@@ -6,22 +6,55 @@
   android:id="@+id/deviceCard"
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
+  android:layout_marginTop="16dp"
   android:layout_marginLeft="16dp"
-  android:layout_marginTop="8dp"
   android:layout_marginRight="16dp"
-  android:layout_marginBottom="8dp"
   android:clickable="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content">
 
-        <com.google.android.material.textview.MaterialTextView
+      <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="111dp" />
+
+      <com.google.android.material.chip.Chip
+        android:id="@+id/deviceEdit"
+        style="@style/Widget.MaterialComponents.Chip.Action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_gravity="center_vertical|start"
+        android:ellipsize="end"
+        android:text="@string/device_edit"
+        app:chipIcon="@drawable/ic_settings_24px"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+      <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/devicePower"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:paddingTop="-4dp"
+        android:checked="false"
+        app:layout_constraintBottom_toTopOf="@+id/deviceEdit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+      <com.google.android.material.textview.MaterialTextView
           android:id="@+id/deviceStatus"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
           android:layout_marginStart="16dp"
-          android:layout_marginTop="8dp"
           android:alpha="?alphaEmphasisMedium"
           android:text="@string/device_status"
           android:textAppearance="?textAppearanceOverline"
@@ -32,69 +65,35 @@
           android:id="@+id/deviceIp"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:layout_marginStart="16dp"
           android:layout_marginTop="8dp"
+          android:layout_marginStart="16dp"
           android:alpha="?alphaEmphasisMedium"
           android:text="@string/device_ip"
           android:textAppearance="?textAppearanceOverline"
           app:layout_constraintStart_toStartOf="parent"
           app:layout_constraintTop_toBottomOf="@+id/deviceStatus" />
 
-
-        <com.leondeklerk.smartcontroller.widget.ColorDotView
-          android:id="@+id/deviceLed"
-          android:layout_width="10dp"
-          android:layout_height="10dp"
-          android:layout_gravity="end|center_vertical"
-          app:colorFillColor="@color/status_off"
-          app:layout_constraintBottom_toBottomOf="@+id/deviceStatus"
-          app:layout_constraintEnd_toStartOf="@+id/guideline"
-          app:layout_constraintTop_toTopOf="@+id/deviceStatus" />
-
         <com.google.android.material.textview.MaterialTextView
           android:id="@+id/deviceName"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:layout_marginStart="16dp"
           android:layout_marginTop="8dp"
+          android:layout_marginStart="16dp"
           android:alpha="?alphaEmphasisHigh"
           android:text="@string/device_name"
           android:textAppearance="?textAppearanceHeadline6"
           app:layout_constraintStart_toStartOf="parent"
           app:layout_constraintTop_toTopOf="parent" />
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-          android:id="@+id/devicePower"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="8dp"
-          android:layout_marginEnd="8dp"
-          android:checked="false"
-          android:paddingTop="-4dp"
-          app:layout_constraintBottom_toTopOf="@+id/deviceEdit"
-          app:layout_constraintEnd_toEndOf="parent"
-          app:layout_constraintTop_toTopOf="parent" />
-
-        <com.google.android.material.chip.Chip
-          android:id="@+id/deviceEdit"
-          style="@style/Widget.MaterialComponents.Chip.Action"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:layout_gravity="center_vertical|start"
-          android:layout_marginEnd="8dp"
-          android:layout_marginBottom="8dp"
-          android:ellipsize="end"
-          android:text="@string/device_edit"
-          app:chipIcon="@drawable/ic_settings_24px"
-          app:layout_constraintBottom_toBottomOf="parent"
-          app:layout_constraintEnd_toEndOf="parent" />
-
-        <androidx.constraintlayout.widget.Guideline
-          android:id="@+id/guideline"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
-          android:orientation="vertical"
-          app:layout_constraintGuide_begin="111dp" />
+      <com.leondeklerk.smartcontroller.widget.ColorDotView
+        android:id="@+id/deviceLed"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_gravity="end|center_vertical"
+        app:colorFillColor="@color/status_off"
+        app:layout_constraintBottom_toBottomOf="@+id/deviceStatus"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/deviceStatus" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
