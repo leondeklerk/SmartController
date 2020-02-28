@@ -42,7 +42,7 @@
 
 
         <com.leondeklerk.smartcontroller.widget.ColorDotView
-          android:id="@+id/statusLed"
+          android:id="@+id/deviceLed"
           android:layout_width="10dp"
           android:layout_height="10dp"
           android:layout_gravity="end|center_vertical"

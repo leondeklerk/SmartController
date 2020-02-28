@@ -2,9 +2,11 @@ package com.leondeklerk.smartcontroller;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
@@ -26,18 +28,18 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
   // Provide a reference to the views for each data item
   // Complex data items may need more than one view per item, and
   // you provide access to all the views for a data item in a view holder
-  public static class CardViewHolder extends RecyclerView.ViewHolder {
+  static class CardViewHolder extends RecyclerView.ViewHolder {
 
     // Each item in the adapter is a CardView
-    public MaterialCardView cardView;
+    MaterialCardView cardView;
 
-    public CardViewHolder(MaterialCardView v) {
+    CardViewHolder(MaterialCardView v) {
       super(v);
       cardView = v;
     }
   }
 
-  public DeviceAdapter(ArrayList<SmartDevice> devices, Context context) {
+  DeviceAdapter(ArrayList<SmartDevice> devices, Context context) {
     this.devices = devices;
     this.context = context;
     this.resources = context.getResources();
@@ -57,13 +59,14 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
 
   // Replace the contents of a view (invoked by the layout manager)
   @Override
-  public void onBindViewHolder(@NotNull CardViewHolder holder, int position) {
-    DeviceData data = devices.get(position).getData();
+  public void onBindViewHolder(@NotNull CardViewHolder holder, final int position) {
+    final SmartDevice device = devices.get(position);
+    DeviceData data = device.getData();
 
     MaterialTextView deviceName = holder.cardView.findViewById(R.id.deviceName);
     deviceName.setText(resources.getString(R.string.device_name, data.getName()));
 
-    ColorDotView statusLed = holder.cardView.findViewById(R.id.statusLed);
+    ColorDotView statusLed = holder.cardView.findViewById(R.id.deviceLed);
     statusLed.setVisibility(View.INVISIBLE);
 
     MaterialTextView deviceStatus = holder.cardView.findViewById(R.id.deviceStatus);
@@ -73,7 +76,19 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
     deviceIp.setText(resources.getString(R.string.device_ip, data.getIp()));
 
     SwitchMaterial devicePower = holder.cardView.findViewById(R.id.devicePower);
-    devicePower.setOnCheckedChangeListener((OnCheckedChangeListener) context);
+    devicePower.setEnabled(false);
+    devicePower.setOnCheckedChangeListener(
+        new OnCheckedChangeListener() {
+          @Override
+          public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            Log.d("DevicePower", "toggled");
+            NetworkTask task = new NetworkTask((NetworkCallback) context, position);
+            task.execute(device.getCommand(device.turnOn(isChecked)));
+          }
+        });
+
+    NetworkTask task = new NetworkTask((NetworkCallback) context, position);
+    task.execute(device.getCommand(device.getPowerStatus()));
   }
 
   // Return the size of your dataset (invoked by the layout manager)

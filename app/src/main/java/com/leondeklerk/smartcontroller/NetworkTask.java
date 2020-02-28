@@ -9,9 +9,11 @@ import java.net.URL;
 
 public class NetworkTask extends AsyncTask<String, Integer, Response> {
   private NetworkCallback callback;
+  private int deviceNum;
 
-  NetworkTask(NetworkCallback callback) {
+  NetworkTask(NetworkCallback callback, int device) {
     super();
+    this.deviceNum = device;
     this.callback = callback;
   }
 
@@ -38,7 +40,7 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
   @Override
   protected void onPostExecute(Response response) {
     // Switch processing animation (off)
-    callback.onFinish(response);
+    callback.onFinish(response, deviceNum);
   }
 
   private Response makeRequest(String url) {
