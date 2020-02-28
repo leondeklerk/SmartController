@@ -2,6 +2,8 @@ package com.leondeklerk.smartcontroller;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.Log;
@@ -21,14 +23,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
-import com.leondeklerk.smartcontroller.data.DeviceData;
 import com.leondeklerk.smartcontroller.data.Response;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
 import com.leondeklerk.smartcontroller.utils.IpInputFilter;
 import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
 import com.leondeklerk.smartcontroller.widget.ColorDotView;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,32 +47,24 @@ public class MainActivity extends AppCompatActivity
   ArrayList<SmartDevice> devices;
   TextInputLayoutUtils layoutUtils;
   AlertDialog addDeviceDialog;
+  SharedPreferences preferences;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     context = this;
-    //    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-    DeviceData data =
-        new DeviceData(0, "LED Socket", "192.168.1.217", true)
-            .setUsername("admin")
-            .setPassword("LDK.Tasmota2020");
-    device = new SmartDevice(data);
+    preferences = this.getPreferences(Context.MODE_PRIVATE);
+    getDevices();
 
     recyclerView = findViewById(R.id.deviceList);
-
-    // use this setting to improve performance if you know that changes
-    // in content do not change the layout size of the RecyclerView
     recyclerView.setHasFixedSize(true);
 
     // use a linear layout manager
     RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
     recyclerView.setLayoutManager(layoutManager);
 
-    // specify an adapter (see also next example)
-    devices = new ArrayList<>();
-    devices.add(device);
+    //set the adapter
     deviceAdapter = new DeviceAdapter(devices, context);
     recyclerView.setAdapter(deviceAdapter);
 
@@ -206,6 +202,27 @@ public class MainActivity extends AppCompatActivity
       devices.clear();
       devices.addAll(newList);
       diff.dispatchUpdatesTo(deviceAdapter);
+      storeDevices();
     }
+  }
+
+  public void getDevices() {
+    String json = preferences.getString("deviceList", null);
+    if (json != null) {
+      Gson gson = new Gson();
+      Type type = new TypeToken<ArrayList<SmartDevice>>() {
+      }.getType();
+      devices = gson.fromJson(json, type);
+    } else {
+      devices = new ArrayList<>();
+    }
+  }
+
+  public void storeDevices() {
+    Editor prefsEditor = preferences.edit();
+    Gson gson = new Gson();
+    String json = gson.toJson(devices);
+    prefsEditor.putString("deviceList", json);
+    prefsEditor.apply();
   }
 }
