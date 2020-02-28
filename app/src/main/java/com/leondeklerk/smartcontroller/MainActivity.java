@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity
     // specify an adapter (see also next example)
     devices = new ArrayList<>();
     devices.add(device);
-    Adapter mAdapter = new DeviceAdapter(devices);
+    Adapter mAdapter = new DeviceAdapter(devices, context);
     recyclerView.setAdapter(mAdapter);
 
     ColorDotView colorDotView = findViewById(R.id.statusLed);
@@ -99,6 +99,8 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onFinish(Response response) {
+//    DeviceAdapter.CardViewHolder holder = (CardViewHolder) recyclerView.getChildViewHolder(recyclerView.getChildAt(0));
+//    ((MaterialTextView) holder.cardView.findViewById(R.id.deviceName)).setText("123");
     ledToggle.setOnCheckedChangeListener(null);
     ColorDotView colorDotView = findViewById(R.id.statusLed);
     MaterialTextView status = findViewById(R.id.deviceStatus);
@@ -154,10 +156,10 @@ public class MainActivity extends AppCompatActivity
     AlertDialog dialog =
         new MaterialAlertDialogBuilder(
             v.getContext(), R.style.MaterialAlertDialog_FilledButtonDialog)
-            .setTitle("Add new Device")
+            .setTitle(getString(R.string.add_device_title))
             .setView(layout)
-            .setPositiveButton("add", null)
-            .setNegativeButton("Cancel", null)
+            .setPositiveButton(getString(R.string.add_button_confirm), null)
+            .setNegativeButton(getString(android.R.string.cancel), null)
             .create();
 
     final View dialogView = dialog.getLayoutInflater().inflate(R.layout.device_dialog, layout);
@@ -227,7 +229,7 @@ public class MainActivity extends AppCompatActivity
       SmartDevice device = layoutUtils.readDevice(isProtected, devices.size());
       devices.add(device);
 
-      Adapter mAdapter = new DeviceAdapter(devices);
+      Adapter mAdapter = new DeviceAdapter(devices, context);
       recyclerView.setAdapter(mAdapter);
     }
   }

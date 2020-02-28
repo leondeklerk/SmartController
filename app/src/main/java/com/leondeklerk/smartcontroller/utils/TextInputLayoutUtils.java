@@ -1,6 +1,7 @@
 package com.leondeklerk.smartcontroller.utils;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
@@ -20,10 +21,12 @@ public class TextInputLayoutUtils {
 
   private ArrayList<TextInputLayout> layouts;
   private Context context;
+  private Resources resources;
 
   public TextInputLayoutUtils(ArrayList<TextInputLayout> layouts, Context context) {
     this.layouts = layouts;
     this.context = context;
+    resources = context.getResources();
   }
 
   public void addLayout(TextInputLayout layout) {
@@ -49,15 +52,15 @@ public class TextInputLayoutUtils {
                 String text = editText.getText().toString();
                 if (TextUtils.isEmpty(text)) {
                   layout.setErrorEnabled(true);
-                  layout.setError("Input required");
+                  layout.setError(resources.getString(R.string.error_input_required));
                 } else if (layout.isCounterEnabled()
                     && text.length() > layout.getCounterMaxLength()) {
                   layout.setErrorEnabled(true);
-                  layout.setError("Input length surpassed");
+                  layout.setError(resources.getString(R.string.error_input_length));
                 } else if (layout.getId() == R.id.newIp) {
                   if (text.split("\\.").length != 4) {
                     layout.setErrorEnabled(true);
-                    layout.setError("No valid IP address");
+                    layout.setError(resources.getString(R.string.error_input_invalid_ip));
                   } else {
                     layout.setErrorEnabled(false);
                   }
@@ -99,11 +102,12 @@ public class TextInputLayoutUtils {
     return false;
   }
 
+  @SuppressWarnings("ConstantConditions")
   public SmartDevice readDevice(boolean isProtected, int nextId) {
     ArrayList<String> inputs = new ArrayList<>();
     for (TextInputLayout layout : layouts) {
       EditText editText = layout.getEditText();
-      inputs.add(editText.toString());
+      inputs.add(editText.getText().toString());
     }
 
     DeviceData data = new DeviceData(nextId, inputs.get(0), inputs.get(1), isProtected);
