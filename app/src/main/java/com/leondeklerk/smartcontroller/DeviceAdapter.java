@@ -2,7 +2,6 @@ package com.leondeklerk.smartcontroller;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,9 +81,10 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
         new OnCheckedChangeListener() {
           @Override
           public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            Log.d("DevicePower", "toggled");
-            NetworkTask task = new NetworkTask((NetworkCallback) context, position);
-            task.execute(device.getCommand(device.turnOn(isChecked)));
+            if (buttonView.isPressed()) {
+              NetworkTask task = new NetworkTask((NetworkCallback) context, position);
+              task.execute(device.getCommand(device.turnOn(isChecked)));
+            }
           }
         });
 
