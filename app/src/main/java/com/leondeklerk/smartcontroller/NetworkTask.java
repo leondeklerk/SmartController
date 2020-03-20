@@ -1,7 +1,6 @@
 package com.leondeklerk.smartcontroller;
 
 import android.os.AsyncTask;
-import android.util.Log;
 import com.leondeklerk.smartcontroller.data.Response;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -48,7 +47,6 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
       con.setConnectTimeout(10000);
       int responseCode = con.getResponseCode();
       if (responseCode != HttpURLConnection.HTTP_OK) {
-        Log.d("NWErr", String.valueOf(responseCode));
         throw new Exception(String.valueOf(responseCode));
       }
 

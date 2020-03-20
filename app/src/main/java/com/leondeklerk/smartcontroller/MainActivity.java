@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity
   private RecyclerView recyclerView;
   DeviceAdapter deviceAdapter;
   Context context;
-  SmartDevice device;
   ArrayList<SmartDevice> devices;
   TextInputLayoutUtils layoutUtils;
   AlertDialog addDeviceDialog;
@@ -64,7 +63,7 @@ public class MainActivity extends AppCompatActivity
     RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
     recyclerView.setLayoutManager(layoutManager);
 
-    //set the adapter
+    // set the adapter
     deviceAdapter = new DeviceAdapter(devices, context);
     recyclerView.setAdapter(deviceAdapter);
 
