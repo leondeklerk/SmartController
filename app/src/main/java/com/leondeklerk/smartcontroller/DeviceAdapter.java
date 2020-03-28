@@ -1,14 +1,17 @@
 package com.leondeklerk.smartcontroller;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textview.MaterialTextView;
 import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
@@ -74,6 +77,16 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
 
     MaterialTextView deviceIp = holder.cardView.findViewById(R.id.deviceIp);
     deviceIp.setText(resources.getString(R.string.device_ip, data.getIp()));
+
+    Chip deviceEdit = holder.cardView.findViewById(R.id.deviceEdit);
+    deviceEdit.setOnClickListener(
+        new OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            Intent intent = new Intent(context, DeviceEditActivity.class);
+            context.startActivity(intent);
+          }
+        });
 
     SwitchMaterial devicePower = holder.cardView.findViewById(R.id.devicePower);
     devicePower.setEnabled(false);
