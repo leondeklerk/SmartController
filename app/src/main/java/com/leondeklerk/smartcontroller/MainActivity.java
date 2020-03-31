@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.Log;
@@ -24,16 +23,14 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
 import com.leondeklerk.smartcontroller.data.Response;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
+import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
 import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
 import com.leondeklerk.smartcontroller.utils.IpInputFilter;
 import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
 import com.leondeklerk.smartcontroller.widget.ColorDotView;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,6 +41,7 @@ public class MainActivity extends AppCompatActivity
   public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
   private RecyclerView recyclerView;
   private ArrayList<NetworkTask> tasks;
+  private DeviceStorageUtils deviceStorageUtils;
   DeviceAdapter deviceAdapter;
   Context context;
   ArrayList<SmartDevice> devices;
@@ -57,9 +55,11 @@ public class MainActivity extends AppCompatActivity
     setContentView(R.layout.activity_main);
     context = this;
     preferences = this.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
-    devices = getDevices();
 
+    deviceStorageUtils = new DeviceStorageUtils(preferences);
     tasks = new ArrayList<>();
+
+    devices = deviceStorageUtils.getDevices();
 
     recyclerView = findViewById(R.id.deviceList);
     recyclerView.setHasFixedSize(true);
@@ -157,7 +157,7 @@ public class MainActivity extends AppCompatActivity
       devices.clear();
       devices.addAll(newList);
       diff.dispatchUpdatesTo(deviceAdapter);
-      storeDevices();
+      deviceStorageUtils.storeDevices(devices);
     }
   }
 
@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity
       if (data.getBooleanExtra(EXTRA_DEV_CHANGED, false)) {
         cancelTasks();
         ArrayList<SmartDevice> oldList = new ArrayList<>(devices);
-        ArrayList<SmartDevice> newList = getDevices();
+        ArrayList<SmartDevice> newList = deviceStorageUtils.getDevices();
         DiffUtilCallback diffUtilCallback = new DiffUtilCallback(oldList, newList);
         DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
         devices.clear();
@@ -239,26 +239,10 @@ public class MainActivity extends AppCompatActivity
     layoutUtils.setErrorListeners();
   }
 
-  public ArrayList<SmartDevice> getDevices() {
-    String json = preferences.getString("deviceList", null);
-    if (json != null) {
-      Gson gson = new Gson();
-      Type type = new TypeToken<ArrayList<SmartDevice>>() {
-      }.getType();
-      return gson.fromJson(json, type);
-    } else {
-      return new ArrayList<>();
-    }
-  }
-
-  public void storeDevices() {
-    Editor prefsEditor = preferences.edit();
-    Gson gson = new Gson();
-    String json = gson.toJson(devices);
-    prefsEditor.putString("deviceList", json);
-    prefsEditor.apply();
-  }
-
+  /**
+   * Cancel all outstanding tasks, ending them if they are already running
+   * or stopping them before they even begin.
+   */
   public void cancelTasks() {
     for (NetworkTask task : tasks) {
       task.cancel(true);
