@@ -1,14 +1,17 @@
 package com.leondeklerk.smartcontroller;
 
-import android.content.Context;
+import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textview.MaterialTextView;
 import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
@@ -21,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
 
   private ArrayList<SmartDevice> devices;
-  private Context context;
+  private Activity context;
   private Resources resources;
 
   // Provide a reference to the views for each data item
@@ -38,7 +41,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
     }
   }
 
-  DeviceAdapter(ArrayList<SmartDevice> devices, Context context) {
+  DeviceAdapter(ArrayList<SmartDevice> devices, Activity context) {
     this.devices = devices;
     this.context = context;
     this.resources = context.getResources();
@@ -74,6 +77,19 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
 
     MaterialTextView deviceIp = holder.cardView.findViewById(R.id.deviceIp);
     deviceIp.setText(resources.getString(R.string.device_ip, data.getIp()));
+
+    Chip deviceEdit = holder.cardView.findViewById(R.id.deviceEdit);
+    deviceEdit.setOnClickListener(
+        new OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            Intent intent = new Intent(context, DeviceEditActivity.class);
+            intent.putExtra(DeviceEditActivity.EXTRA_SELECTED_DEV, position);
+            intent.putExtra(DeviceEditActivity.EXTRA_NUM_DEV, getItemCount());
+
+            context.startActivityForResult(intent, 0);
+          }
+        });
 
     SwitchMaterial devicePower = holder.cardView.findViewById(R.id.devicePower);
     devicePower.setEnabled(false);
