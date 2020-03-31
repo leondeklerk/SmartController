@@ -1,6 +1,6 @@
 package com.leondeklerk.smartcontroller;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.view.LayoutInflater;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
 
   private ArrayList<SmartDevice> devices;
-  private Context context;
+  private Activity context;
   private Resources resources;
 
   // Provide a reference to the views for each data item
@@ -41,7 +41,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
     }
   }
 
-  DeviceAdapter(ArrayList<SmartDevice> devices, Context context) {
+  DeviceAdapter(ArrayList<SmartDevice> devices, Activity context) {
     this.devices = devices;
     this.context = context;
     this.resources = context.getResources();
@@ -84,7 +84,10 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
           @Override
           public void onClick(View v) {
             Intent intent = new Intent(context, DeviceEditActivity.class);
-            context.startActivity(intent);
+            intent.putExtra(DeviceEditActivity.EXTRA_SELECTED_DEV, position);
+            intent.putExtra(DeviceEditActivity.EXTRA_NUM_DEV, getItemCount());
+
+            context.startActivityForResult(intent, 0);
           }
         });
 

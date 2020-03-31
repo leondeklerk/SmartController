@@ -19,6 +19,7 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
 
   @Override
   protected void onPreExecute() {
+    callback.onPreExecute(this);
     // Switch processing animation (on)
   }
 
@@ -36,7 +37,12 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
   @Override
   protected void onPostExecute(Response response) {
     // Switch processing animation (off)
-    callback.onFinish(response, deviceNum);
+    callback.onFinish(this, response, deviceNum);
+  }
+
+  @Override
+  protected void onCancelled(Response response) {
+    callback.onCancel(this);
   }
 
   private Response makeRequest(String url) {

@@ -2,6 +2,7 @@ package com.leondeklerk.smartcontroller;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
@@ -40,7 +41,9 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity
     implements NetworkCallback, View.OnClickListener {
 
+  public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
   private RecyclerView recyclerView;
+  private ArrayList<NetworkTask> tasks;
   DeviceAdapter deviceAdapter;
   Context context;
   ArrayList<SmartDevice> devices;
@@ -53,8 +56,10 @@ public class MainActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
     context = this;
-    preferences = this.getPreferences(Context.MODE_PRIVATE);
-    getDevices();
+    preferences = this.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
+    devices = getDevices();
+
+    tasks = new ArrayList<>();
 
     recyclerView = findViewById(R.id.deviceList);
     recyclerView.setHasFixedSize(true);
@@ -64,7 +69,7 @@ public class MainActivity extends AppCompatActivity
     recyclerView.setLayoutManager(layoutManager);
 
     // set the adapter
-    deviceAdapter = new DeviceAdapter(devices, context);
+    deviceAdapter = new DeviceAdapter(devices, this);
     recyclerView.setAdapter(deviceAdapter);
 
     // The Floating action button to launch a dialog where new device can be created
@@ -82,7 +87,13 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void onFinish(Response response, int deviceNum) {
+  public void onPreExecute(NetworkTask task) {
+    tasks.add(task);
+  }
+
+  @Override
+  public void onFinish(NetworkTask task, Response response, int deviceNum) {
+    tasks.remove(task);
     DeviceAdapter.CardViewHolder holder =
         (CardViewHolder) recyclerView.getChildViewHolder(recyclerView.getChildAt(deviceNum));
     MaterialCardView card = holder.cardView;
@@ -123,6 +134,47 @@ public class MainActivity extends AppCompatActivity
       deviceStatus.setText(getString(R.string.device_status, statusString));
       deviceLed.setVisibility(View.VISIBLE);
       Log.d("Response", response.getResponse());
+    }
+  }
+
+  @Override
+  public void onCancel(NetworkTask task) {
+    tasks.remove(task);
+  }
+
+  @Override
+  public void onClick(View v) {
+    if (!layoutUtils.hasErrors()) {
+      cancelTasks();
+      addDeviceDialog.dismiss();
+      SwitchMaterial switchMaterial = addDeviceDialog.findViewById(R.id.switchCredentials);
+      boolean isProtected = switchMaterial.isChecked();
+      SmartDevice device = layoutUtils.readDevice(isProtected, devices.size());
+      ArrayList<SmartDevice> newList = new ArrayList<>(devices);
+      newList.add(device);
+      DiffUtilCallback diffUtilCallback = new DiffUtilCallback(devices, newList);
+      DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
+      devices.clear();
+      devices.addAll(newList);
+      diff.dispatchUpdatesTo(deviceAdapter);
+      storeDevices();
+    }
+  }
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (resultCode == RESULT_OK) {
+      if (data.getBooleanExtra(EXTRA_DEV_CHANGED, false)) {
+        cancelTasks();
+        ArrayList<SmartDevice> oldList = new ArrayList<>(devices);
+        ArrayList<SmartDevice> newList = getDevices();
+        DiffUtilCallback diffUtilCallback = new DiffUtilCallback(oldList, newList);
+        DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
+        devices.clear();
+        devices.addAll(newList);
+        diff.dispatchUpdatesTo(deviceAdapter);
+      }
     }
   }
 
@@ -187,33 +239,15 @@ public class MainActivity extends AppCompatActivity
     layoutUtils.setErrorListeners();
   }
 
-  @Override
-  public void onClick(View v) {
-    if (!layoutUtils.hasErrors()) {
-      addDeviceDialog.dismiss();
-      SwitchMaterial switchMaterial = addDeviceDialog.findViewById(R.id.switchCredentials);
-      boolean isProtected = switchMaterial.isChecked();
-      SmartDevice device = layoutUtils.readDevice(isProtected, devices.size());
-      ArrayList<SmartDevice> newList = new ArrayList<>(devices);
-      newList.add(device);
-      DiffUtilCallback diffUtilCallback = new DiffUtilCallback(devices, newList);
-      DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
-      devices.clear();
-      devices.addAll(newList);
-      diff.dispatchUpdatesTo(deviceAdapter);
-      storeDevices();
-    }
-  }
-
-  public void getDevices() {
+  public ArrayList<SmartDevice> getDevices() {
     String json = preferences.getString("deviceList", null);
     if (json != null) {
       Gson gson = new Gson();
       Type type = new TypeToken<ArrayList<SmartDevice>>() {
       }.getType();
-      devices = gson.fromJson(json, type);
+      return gson.fromJson(json, type);
     } else {
-      devices = new ArrayList<>();
+      return new ArrayList<>();
     }
   }
 
@@ -223,5 +257,11 @@ public class MainActivity extends AppCompatActivity
     String json = gson.toJson(devices);
     prefsEditor.putString("deviceList", json);
     prefsEditor.apply();
+  }
+
+  public void cancelTasks() {
+    for (NetworkTask task : tasks) {
+      task.cancel(true);
+    }
   }
 }
