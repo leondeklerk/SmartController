@@ -12,7 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.button.MaterialButton;
+import com.leondeklerk.smartcontroller.databinding.FragmentDeviceEditBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
 import java.util.ArrayList;
@@ -25,12 +25,14 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
   private int devNum;
   private ArrayList<SmartDevice> devices;
   private DeviceStorageUtils deviceStorageUtils;
+  private FragmentDeviceEditBinding binding;
 
   @Override
   public View onCreateView(
-      LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+      @NotNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    binding = FragmentDeviceEditBinding.inflate(inflater, container, false);
     context = getActivity();
-    return inflater.inflate(R.layout.fragment_device_edit, container, false);
+    return binding.getRoot();
   }
 
   @Override
@@ -41,17 +43,14 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
     } else {
       context.finish();
     }
-    SharedPreferences preferences = context
-        .getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
+    SharedPreferences preferences =
+        context.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
     deviceStorageUtils = new DeviceStorageUtils(preferences);
 
     devices = deviceStorageUtils.getDevices();
 
-    MaterialButton cancelButton = view.findViewById(R.id.edit_cancel);
-    cancelButton.setOnClickListener(this);
-
-    MaterialButton deleteButton = view.findViewById(R.id.edit_delete);
-    deleteButton.setOnClickListener(this);
+    binding.editCancel.setOnClickListener(this);
+    binding.editDelete.setOnClickListener(this);
   }
 
   @Override
@@ -59,6 +58,12 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
     super.onResume();
     MaterialToolbar toolbar = context.findViewById(R.id.toolbar);
     toolbar.setTitle(devices.get(devNum).getData().getName());
+  }
+
+  @Override
+  public void onDestroyView() {
+    super.onDestroyView();
+    binding = null;
   }
 
   @Override

@@ -19,12 +19,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.material.textview.MaterialTextView;
 import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
 import com.leondeklerk.smartcontroller.data.Response;
+import com.leondeklerk.smartcontroller.databinding.ActivityMainBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
 import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity
     implements NetworkCallback, View.OnClickListener {
 
   public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
+  private ActivityMainBinding binding;
   private RecyclerView recyclerView;
   private ArrayList<NetworkTask> tasks;
   private DeviceStorageUtils deviceStorageUtils;
@@ -52,7 +53,11 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+
+    binding = ActivityMainBinding.inflate(getLayoutInflater());
+    View view = binding.getRoot();
+    setContentView(view);
+
     context = this;
     preferences = this.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
 
@@ -61,7 +66,7 @@ public class MainActivity extends AppCompatActivity
 
     devices = deviceStorageUtils.getDevices();
 
-    recyclerView = findViewById(R.id.deviceList);
+    recyclerView = binding.deviceList;
     recyclerView.setHasFixedSize(true);
 
     // use a linear layout manager
@@ -73,8 +78,7 @@ public class MainActivity extends AppCompatActivity
     recyclerView.setAdapter(deviceAdapter);
 
     // The Floating action button to launch a dialog where new device can be created
-    FloatingActionButton fab = findViewById(R.id.fab);
-    fab.setOnClickListener(
+    binding.fab.setOnClickListener(
         new View.OnClickListener() {
           @Override
           public void onClick(View v) {
@@ -240,8 +244,8 @@ public class MainActivity extends AppCompatActivity
   }
 
   /**
-   * Cancel all outstanding tasks, ending them if they are already running
-   * or stopping them before they even begin.
+   * Cancel all outstanding tasks, ending them if they are already running or stopping them before
+   * they even begin.
    */
   public void cancelTasks() {
     for (NetworkTask task : tasks) {
