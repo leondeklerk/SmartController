@@ -51,8 +51,8 @@ public class MainActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
 
     // Bind the MainActivity layout file
-    com.leondeklerk.smartcontroller.databinding.ActivityMainBinding binding = ActivityMainBinding
-        .inflate(getLayoutInflater());
+    com.leondeklerk.smartcontroller.databinding.ActivityMainBinding binding =
+        ActivityMainBinding.inflate(getLayoutInflater());
     View view = binding.getRoot();
     setContentView(view);
 
@@ -199,8 +199,7 @@ public class MainActivity extends AppCompatActivity
    */
   public AlertDialog createDeviceDialog() {
     // Create a binding based on the device_dialog layout
-    dialogBinding =
-        DeviceDialogBinding.inflate(LayoutInflater.from(context));
+    dialogBinding = DeviceDialogBinding.inflate(LayoutInflater.from(context));
 
     // create a dialog
     AlertDialog dialog =
