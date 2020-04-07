@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.leondeklerk.smartcontroller.databinding.FragmentDeviceEditBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
@@ -56,8 +55,7 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
   @Override
   public void onResume() {
     super.onResume();
-    MaterialToolbar toolbar = context.findViewById(R.id.toolbar);
-    toolbar.setTitle(devices.get(devNum).getData().getName());
+    DeviceEditActivity.binding.toolbar.setTitle(devices.get(devNum).getData().getName());
   }
 
   @Override

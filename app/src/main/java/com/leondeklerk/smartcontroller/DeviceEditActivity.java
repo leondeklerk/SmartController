@@ -15,7 +15,7 @@ public class DeviceEditActivity extends FragmentActivity {
   public static final String EXTRA_SELECTED_DEV = "com.leondeklerk.smartcontroller.SELECTED_DEV";
   public static final String EXTRA_NUM_DEV = "com.leondeklerk.smartcontroller.NUM_DEV";
   private static int numOfDevices;
-  private ActivityDeviceEditBinding binding;
+  static ActivityDeviceEditBinding binding;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
