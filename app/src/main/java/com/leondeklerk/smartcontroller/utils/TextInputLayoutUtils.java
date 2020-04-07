@@ -110,7 +110,8 @@ public class TextInputLayoutUtils {
       inputs.add(editText.getText().toString());
     }
 
-    DeviceData data = new DeviceData(nextId, inputs.get(0), inputs.get(1), isProtected);
+    DeviceData data =
+        new DeviceData(nextId, inputs.get(0), inputs.get(1), isProtected, "UNKNOWN", false);
     if (isProtected) {
       data.setUsername(inputs.get(2)).setPassword(inputs.get(3));
     }

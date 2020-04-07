@@ -7,30 +7,27 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.FrameLayout;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.DiffUtil.DiffResult;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.textview.MaterialTextView;
-import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
+import com.leondeklerk.smartcontroller.data.DeviceData;
 import com.leondeklerk.smartcontroller.data.Response;
+import com.leondeklerk.smartcontroller.databinding.ActivityMainBinding;
+import com.leondeklerk.smartcontroller.databinding.DeviceDialogBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
 import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
 import com.leondeklerk.smartcontroller.utils.IpInputFilter;
 import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
-import com.leondeklerk.smartcontroller.widget.ColorDotView;
 import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +36,7 @@ public class MainActivity extends AppCompatActivity
     implements NetworkCallback, View.OnClickListener {
 
   public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
-  private RecyclerView recyclerView;
+  private DeviceDialogBinding dialogBinding;
   private ArrayList<NetworkTask> tasks;
   private DeviceStorageUtils deviceStorageUtils;
   DeviceAdapter deviceAdapter;
@@ -52,7 +49,13 @@ public class MainActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
+
+    // Bind the MainActivity layout file
+    com.leondeklerk.smartcontroller.databinding.ActivityMainBinding binding =
+        ActivityMainBinding.inflate(getLayoutInflater());
+    View view = binding.getRoot();
+    setContentView(view);
+
     context = this;
     preferences = this.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
 
@@ -61,24 +64,25 @@ public class MainActivity extends AppCompatActivity
 
     devices = deviceStorageUtils.getDevices();
 
-    recyclerView = findViewById(R.id.deviceList);
+    // Create a RecyclerView for the deviceCards
+    RecyclerView recyclerView = binding.deviceList;
     recyclerView.setHasFixedSize(true);
 
-    // use a linear layout manager
     RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
     recyclerView.setLayoutManager(layoutManager);
 
-    // set the adapter
     deviceAdapter = new DeviceAdapter(devices, this);
     recyclerView.setAdapter(deviceAdapter);
 
-    // The Floating action button to launch a dialog where new device can be created
-    FloatingActionButton fab = findViewById(R.id.fab);
-    fab.setOnClickListener(
+    // Ping the devices for their status
+    pingStatus(false);
+
+    // Set the FAB listener for device creation
+    binding.fab.setOnClickListener(
         new View.OnClickListener() {
           @Override
           public void onClick(View v) {
-            addDeviceDialog = createDeviceDialog(v);
+            addDeviceDialog = createDeviceDialog();
             addDeviceDialog.show();
             Button button = addDeviceDialog.getButton(DialogInterface.BUTTON_POSITIVE);
             button.setOnClickListener((View.OnClickListener) context);
@@ -93,48 +97,37 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onFinish(NetworkTask task, Response response, int deviceNum) {
+    // Remove the task from the list of tasks
     tasks.remove(task);
-    DeviceAdapter.CardViewHolder holder =
-        (CardViewHolder) recyclerView.getChildViewHolder(recyclerView.getChildAt(deviceNum));
-    MaterialCardView card = holder.cardView;
 
-    ColorDotView deviceLed = card.findViewById(R.id.deviceLed);
-    MaterialTextView deviceStatus = card.findViewById(R.id.deviceStatus);
-    SwitchMaterial devicePower = holder.cardView.findViewById(R.id.devicePower);
-
-    devicePower.setEnabled(false);
+    DeviceData device = devices.get(deviceNum).getData();
 
     if (response.getException() != null) {
+      // If there was an error, log it and set status to UNKNOWN
       Log.d("Network error", response.getException().toString());
-      deviceStatus.setText(getString(R.string.device_status, getString(R.string.status_unknown)));
-      devicePower.setChecked(false);
-      deviceLed.setVisibility(View.INVISIBLE);
+      device.setStatus("UNKNOWN");
     } else {
+      // If there was a response, retrieve the response
       String statusString;
       try {
         JSONObject obj = new JSONObject(response.getResponse());
         statusString = obj.getString("POWER");
       } catch (JSONException e) {
+        device.setStatus("UNKNOWN");
         e.printStackTrace();
         Log.d("JSON Response", response.getResponse());
         return;
       }
+      // Set the values according to the response
       if (statusString.equals("ON")) {
-        if (!devicePower.isChecked()) {
-          devicePower.setChecked(true);
-        }
-        deviceLed.setFillColor(getColor(R.color.status_on));
+        device.setStatus("ON");
       } else {
-        if (devicePower.isChecked()) {
-          devicePower.setChecked(false);
-        }
-        deviceLed.setFillColor(getColor(R.color.status_off));
+        device.setStatus("OFF");
       }
-      devicePower.setEnabled(true);
-      deviceStatus.setText(getString(R.string.device_status, statusString));
-      deviceLed.setVisibility(View.VISIBLE);
       Log.d("Response", response.getResponse());
     }
+    // Update the RecyclerView
+    deviceAdapter.notifyItemChanged(deviceNum);
   }
 
   @Override
@@ -144,29 +137,46 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onClick(View v) {
+    // Check if any input field has errors
     if (!layoutUtils.hasErrors()) {
+      // Cancel all tasks and dismiss the dialog
       cancelTasks();
       addDeviceDialog.dismiss();
-      SwitchMaterial switchMaterial = addDeviceDialog.findViewById(R.id.switchCredentials);
-      boolean isProtected = switchMaterial.isChecked();
+
+      // Check if the credentials part is enabled
+      boolean isProtected = dialogBinding.switchCredentials.isChecked();
+
+      // Create the new device and add it
       SmartDevice device = layoutUtils.readDevice(isProtected, devices.size());
       ArrayList<SmartDevice> newList = new ArrayList<>(devices);
       newList.add(device);
+
+      // Update the recyclerview
       DiffUtilCallback diffUtilCallback = new DiffUtilCallback(devices, newList);
       DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
       devices.clear();
       devices.addAll(newList);
       diff.dispatchUpdatesTo(deviceAdapter);
+
+      // Store the new list of devices
       deviceStorageUtils.storeDevices(devices);
+
+      // Ping the status of the new device
+      pingStatus(true);
     }
   }
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
+    // If the activity closed normally
     if (resultCode == RESULT_OK) {
+      // Check if data changed is flagged true
       if (data.getBooleanExtra(EXTRA_DEV_CHANGED, false)) {
+        // Stop all ongoing tasks
         cancelTasks();
+
+        // Update the RecyclerView accordingly
         ArrayList<SmartDevice> oldList = new ArrayList<>(devices);
         ArrayList<SmartDevice> newList = deviceStorageUtils.getDevices();
         DiffUtilCallback diffUtilCallback = new DiffUtilCallback(oldList, newList);
@@ -174,45 +184,47 @@ public class MainActivity extends AppCompatActivity
         devices.clear();
         devices.addAll(newList);
         diff.dispatchUpdatesTo(deviceAdapter);
+
+        // Ping each device for it's status
+        pingStatus(false);
       }
     }
   }
 
   /**
-   * @param v
-   * @return
+   * Create a dialog which asks the user for input, also registers relevant listeners for the dialog
+   * UI.
+   *
+   * @return A AlertDialog to be used for creating new devices.
    */
-  public AlertDialog createDeviceDialog(View v) {
-    FrameLayout layout = new FrameLayout(v.getContext());
+  public AlertDialog createDeviceDialog() {
+    // Create a binding based on the device_dialog layout
+    dialogBinding = DeviceDialogBinding.inflate(LayoutInflater.from(context));
 
+    // create a dialog
     AlertDialog dialog =
-        new MaterialAlertDialogBuilder(
-                v.getContext(), R.style.MaterialAlertDialog_FilledButtonDialog)
+        new MaterialAlertDialogBuilder(context, R.style.MaterialAlertDialog_FilledButtonDialog)
             .setTitle(getString(R.string.add_device_title))
-            .setView(layout)
+            .setView(dialogBinding.getRoot())
             .setPositiveButton(getString(R.string.add_button_confirm), null)
             .setNegativeButton(getString(android.R.string.cancel), null)
             .create();
 
-    final View dialogView = dialog.getLayoutInflater().inflate(R.layout.device_dialog, layout);
-
-    TextInputLayout nameLayout = dialogView.findViewById(R.id.newName);
-    final TextInputLayout ipLayout = dialogView.findViewById(R.id.newIp);
+    // Add all TextInputLayouts to a LayoutUtils for error checking
     ArrayList<TextInputLayout> layouts = new ArrayList<>();
-    layouts.add(nameLayout);
-    layouts.add(ipLayout);
+    layouts.add(dialogBinding.newName);
+    layouts.add(dialogBinding.newIp);
     layoutUtils = new TextInputLayoutUtils(layouts, context);
 
     //noinspection ConstantConditions
-    ipLayout.getEditText().setFilters(new InputFilter[] {new IpInputFilter()});
+    dialogBinding.newIp.getEditText().setFilters(new InputFilter[] {new IpInputFilter()});
 
-    // Add a listener to the switch to enable / disable
-    SwitchMaterial credentials = dialogView.findViewById(R.id.switchCredentials);
-    credentials.setOnCheckedChangeListener(
+    // Add a listener to the switch to enable / disable credentials
+    dialogBinding.switchCredentials.setOnCheckedChangeListener(
         new CompoundButton.OnCheckedChangeListener() {
           @Override
           public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            setCredentialsAvailability(dialogView, isChecked);
+            setCredentialsAvailability(dialogBinding, isChecked);
           }
         });
     layoutUtils.setErrorListeners();
@@ -220,32 +232,54 @@ public class MainActivity extends AppCompatActivity
   }
 
   /**
-   * @param dialogView
-   * @param isChecked
+   * Enable or disable the credential input fields on a device creation Dialog. This also registers
+   * the correct layouts in the layoutUtils.
+   *
+   * @param dialogBinding the view binding containing the views of the dialog.
+   * @param enable boolean whether the fields should be enabled or not
    */
-  public void setCredentialsAvailability(View dialogView, boolean isChecked) {
-    TextInputLayout usernameLayout = dialogView.findViewById(R.id.newUsername);
-    usernameLayout.setEnabled(isChecked);
-    TextInputLayout passwordLayout = dialogView.findViewById(R.id.newPassword);
-    passwordLayout.setEnabled(isChecked);
+  public void setCredentialsAvailability(DeviceDialogBinding dialogBinding, boolean enable) {
+    dialogBinding.newUsername.setEnabled(enable);
+    dialogBinding.newPassword.setEnabled(enable);
 
-    if (isChecked) {
-      layoutUtils.addLayout(usernameLayout);
-      layoutUtils.addLayout(passwordLayout);
+    // Add the layouts if they are enabled or remove them if not
+    if (enable) {
+      layoutUtils.addLayout(dialogBinding.newUsername);
+      layoutUtils.addLayout(dialogBinding.newPassword);
     } else {
-      layoutUtils.removeLayout(usernameLayout);
-      layoutUtils.removeLayout(passwordLayout);
+      layoutUtils.removeLayout(dialogBinding.newUsername);
+      layoutUtils.removeLayout(dialogBinding.newPassword);
     }
+    // Rebind the listeners to take the new layouts into account
     layoutUtils.setErrorListeners();
   }
 
   /**
-   * Cancel all outstanding tasks, ending them if they are already running
-   * or stopping them before they even begin.
+   * Cancel all outstanding tasks, ending them if they are already running or stopping them before
+   * they even begin.
    */
   public void cancelTasks() {
     for (NetworkTask task : tasks) {
       task.cancel(true);
+    }
+  }
+
+  /**
+   * Ping devices for their status, when using the last boolean only the last added device will be
+   * pinged. This is to provide the functionality for newly added devices.
+   *
+   * @param last whether to only ping the last (new) device or not.
+   */
+  public void pingStatus(boolean last) {
+    int start = 0;
+    if (last) {
+      start = devices.size() - 1;
+    }
+    // Create a new task and ping the device for their status
+    for (int i = start; i < devices.size(); i++) {
+      NetworkTask task = new NetworkTask((NetworkCallback) context, i);
+      SmartDevice device = devices.get(i);
+      task.execute(device.getCommand(device.getPowerStatus()));
     }
   }
 }

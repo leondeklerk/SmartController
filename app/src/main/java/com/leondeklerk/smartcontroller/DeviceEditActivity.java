@@ -7,7 +7,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
-import com.google.android.material.appbar.MaterialToolbar;
+import com.leondeklerk.smartcontroller.databinding.ActivityDeviceEditBinding;
 import org.jetbrains.annotations.NotNull;
 
 public class DeviceEditActivity extends FragmentActivity {
@@ -15,14 +15,17 @@ public class DeviceEditActivity extends FragmentActivity {
   public static final String EXTRA_SELECTED_DEV = "com.leondeklerk.smartcontroller.SELECTED_DEV";
   public static final String EXTRA_NUM_DEV = "com.leondeklerk.smartcontroller.NUM_DEV";
   private static int numOfDevices;
+  static ActivityDeviceEditBinding binding;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_device_edit);
 
-    MaterialToolbar toolbar = findViewById(R.id.toolbar);
-    toolbar.setNavigationOnClickListener(
+    binding = ActivityDeviceEditBinding.inflate(getLayoutInflater());
+    View view = binding.getRoot();
+    setContentView(view);
+
+    binding.toolbar.setNavigationOnClickListener(
         new View.OnClickListener() {
           @Override
           public void onClick(View view) {
@@ -33,7 +36,7 @@ public class DeviceEditActivity extends FragmentActivity {
     Intent intent = getIntent();
     numOfDevices = intent.getIntExtra(EXTRA_NUM_DEV, 0);
 
-    ViewPager2 viewPager = findViewById(R.id.pager);
+    ViewPager2 viewPager = binding.pager;
     FragmentStateAdapter pagerAdapter = new DeviceEditFragmentAdapter(this);
 
     viewPager.setAdapter(pagerAdapter);
