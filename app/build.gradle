@@ -2,8 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+
 android {
     viewBinding {
+        enabled = true
+    }
+    dataBinding {
         enabled = true
     }
     compileSdkVersion 29

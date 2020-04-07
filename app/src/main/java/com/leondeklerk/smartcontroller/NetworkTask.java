@@ -50,7 +50,7 @@ public class NetworkTask extends AsyncTask<String, Integer, Response> {
     try {
       HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
       con.setRequestMethod("GET");
-      con.setConnectTimeout(10000);
+      con.setConnectTimeout(5000);
       int responseCode = con.getResponseCode();
       if (responseCode != HttpURLConnection.HTTP_OK) {
         throw new Exception(String.valueOf(responseCode));

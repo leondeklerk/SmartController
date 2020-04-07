@@ -17,12 +17,10 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.DiffUtil.DiffResult;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.android.material.textview.MaterialTextView;
-import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
+import com.leondeklerk.smartcontroller.data.DeviceData;
 import com.leondeklerk.smartcontroller.data.Response;
 import com.leondeklerk.smartcontroller.databinding.ActivityMainBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
@@ -30,7 +28,6 @@ import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
 import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
 import com.leondeklerk.smartcontroller.utils.IpInputFilter;
 import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
-import com.leondeklerk.smartcontroller.widget.ColorDotView;
 import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,6 +74,8 @@ public class MainActivity extends AppCompatActivity
     deviceAdapter = new DeviceAdapter(devices, this);
     recyclerView.setAdapter(deviceAdapter);
 
+    pingStatus(false);
+
     // The Floating action button to launch a dialog where new device can be created
     binding.fab.setOnClickListener(
         new View.OnClickListener() {
@@ -98,47 +97,30 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onFinish(NetworkTask task, Response response, int deviceNum) {
     tasks.remove(task);
-    DeviceAdapter.CardViewHolder holder =
-        (CardViewHolder) recyclerView.getChildViewHolder(recyclerView.getChildAt(deviceNum));
-    MaterialCardView card = holder.cardView;
-
-    ColorDotView deviceLed = card.findViewById(R.id.deviceLed);
-    MaterialTextView deviceStatus = card.findViewById(R.id.deviceStatus);
-    SwitchMaterial devicePower = holder.cardView.findViewById(R.id.devicePower);
-
-    devicePower.setEnabled(false);
+    DeviceData device = devices.get(deviceNum).getData();
 
     if (response.getException() != null) {
       Log.d("Network error", response.getException().toString());
-      deviceStatus.setText(getString(R.string.device_status, getString(R.string.status_unknown)));
-      devicePower.setChecked(false);
-      deviceLed.setVisibility(View.INVISIBLE);
+      device.setStatus("UNKNOWN");
     } else {
       String statusString;
       try {
         JSONObject obj = new JSONObject(response.getResponse());
         statusString = obj.getString("POWER");
       } catch (JSONException e) {
+        device.setStatus("UNKNOWN");
         e.printStackTrace();
         Log.d("JSON Response", response.getResponse());
         return;
       }
       if (statusString.equals("ON")) {
-        if (!devicePower.isChecked()) {
-          devicePower.setChecked(true);
-        }
-        deviceLed.setFillColor(getColor(R.color.status_on));
+        device.setStatus("ON");
       } else {
-        if (devicePower.isChecked()) {
-          devicePower.setChecked(false);
-        }
-        deviceLed.setFillColor(getColor(R.color.status_off));
+        device.setStatus("OFF");
       }
-      devicePower.setEnabled(true);
-      deviceStatus.setText(getString(R.string.device_status, statusString));
-      deviceLed.setVisibility(View.VISIBLE);
       Log.d("Response", response.getResponse());
     }
+    deviceAdapter.notifyItemChanged(deviceNum);
   }
 
   @Override
@@ -162,6 +144,7 @@ public class MainActivity extends AppCompatActivity
       devices.addAll(newList);
       diff.dispatchUpdatesTo(deviceAdapter);
       deviceStorageUtils.storeDevices(devices);
+      pingStatus(true);
     }
   }
 
@@ -178,6 +161,7 @@ public class MainActivity extends AppCompatActivity
         devices.clear();
         devices.addAll(newList);
         diff.dispatchUpdatesTo(deviceAdapter);
+        pingStatus(false);
       }
     }
   }
@@ -250,6 +234,24 @@ public class MainActivity extends AppCompatActivity
   public void cancelTasks() {
     for (NetworkTask task : tasks) {
       task.cancel(true);
+    }
+  }
+
+  /**
+   * Ping devices for their status, when using the last boolean only the last added device will be
+   * pinged. This is to provide the functionality for newly added devices.
+   *
+   * @param last whether to only ping the last (new) device or not.
+   */
+  public void pingStatus(boolean last) {
+    int start = 0;
+    if (last) {
+      start = devices.size() - 1;
+    }
+    for (int i = start; i < devices.size(); i++) {
+      NetworkTask task = new NetworkTask((NetworkCallback) context, i);
+      SmartDevice device = devices.get(i);
+      task.execute(device.getCommand(device.getPowerStatus()));
     }
   }
 }
