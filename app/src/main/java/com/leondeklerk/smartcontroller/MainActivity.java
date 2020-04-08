@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.util.Log;
@@ -279,7 +280,8 @@ public class MainActivity extends AppCompatActivity
     for (int i = start; i < devices.size(); i++) {
       NetworkTask task = new NetworkTask((NetworkCallback) context, i);
       SmartDevice device = devices.get(i);
-      task.execute(device.getCommand(device.getPowerStatus()));
+      task.executeOnExecutor(
+          AsyncTask.THREAD_POOL_EXECUTOR, device.getCommand(device.getPowerStatus()));
     }
   }
 }
