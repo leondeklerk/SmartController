@@ -2,6 +2,7 @@ package com.leondeklerk.smartcontroller;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -80,7 +81,8 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
           public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if (buttonView.isPressed()) {
               NetworkTask task = new NetworkTask((NetworkCallback) context, position);
-              task.execute(device.getCommand(device.turnOn(isChecked)));
+              task.executeOnExecutor(
+                  AsyncTask.THREAD_POOL_EXECUTOR, device.getCommand(device.turnOn(isChecked)));
             }
           }
         });
