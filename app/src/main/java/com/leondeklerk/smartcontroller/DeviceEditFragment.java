@@ -48,8 +48,8 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
 
     devices = deviceStorageUtils.getDevices();
 
-    binding.editCancel.setOnClickListener(this);
     binding.editDelete.setOnClickListener(this);
+    binding.editUpdate.setOnClickListener(this);
   }
 
   @Override
@@ -66,20 +66,15 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
 
   @Override
   public void onClick(View v) {
-    switch (v.getId()) {
-      case R.id.edit_cancel:
-        context.onBackPressed();
-        return;
-      case R.id.edit_delete:
-        devices.remove(devNum);
-        deviceStorageUtils.storeDevices(devices);
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra(MainActivity.EXTRA_DEV_CHANGED, true);
-        context.setResult(Activity.RESULT_OK, resultIntent);
-        context.onBackPressed();
-        return;
-      default:
-        Toast.makeText(context, "Unknown device clicked", Toast.LENGTH_SHORT).show();
+    if (v.getId() == R.id.edit_delete) {
+      devices.remove(devNum);
+      deviceStorageUtils.storeDevices(devices);
+      Intent resultIntent = new Intent();
+      resultIntent.putExtra(MainActivity.EXTRA_DEV_CHANGED, true);
+      context.setResult(Activity.RESULT_OK, resultIntent);
+      context.onBackPressed();
+    } else {
+      Toast.makeText(context, "Unknown device clicked", Toast.LENGTH_SHORT).show();
     }
   }
 }

@@ -1,9 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="match_parent">
 
+  <com.google.android.material.switchmaterial.SwitchMaterial
+    android:id="@+id/switchCredentials"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="16dp"
+    app:layout_constraintBottom_toBottomOf="@+id/textCredentials"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toTopOf="@+id/textCredentials" />
+  <com.google.android.material.textfield.TextInputLayout
+    android:id="@+id/newIp"
+    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:hint="@string/add_label_ip"
+    app:boxBackgroundMode="outline"
+    app:errorEnabled="true"
+    app:helperTextEnabled="false"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/newName">
+
+    <com.google.android.material.textfield.TextInputEditText
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:digits="0123456789."
+      android:inputType="number|numberDecimal"
+      android:singleLine="true" />
+  </com.google.android.material.textfield.TextInputLayout>
+  <com.google.android.material.textfield.TextInputLayout
+    android:id="@+id/newUsername"
+    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:enabled="false"
+    android:hint="@string/add_label_username"
+    app:counterEnabled="true"
+    app:counterMaxLength="32"
+    app:errorEnabled="true"
+    app:helperTextEnabled="true"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/switchCredentials">
+
+    <com.google.android.material.textfield.TextInputEditText
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:singleLine="true" />
+  </com.google.android.material.textfield.TextInputLayout>
+  <com.google.android.material.textfield.TextInputLayout
+    android:id="@+id/newName"
+    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:hint="@string/add_label_name"
+    app:counterEnabled="true"
+    app:counterMaxLength="32"
+    app:errorEnabled="true"
+    app:helperTextEnabled="true"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <com.google.android.material.textfield.TextInputEditText
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:importantForAutofill="noExcludeDescendants"
+      android:singleLine="true" />
+  </com.google.android.material.textfield.TextInputLayout>
+  <com.google.android.material.textview.MaterialTextView
+    android:id="@+id/textCredentials"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:layout_marginBottom="16dp"
+    android:layout_marginStart="16dp"
+    android:text="@string/add_switch_text"
+    android:textSize="18sp"
+    app:layout_constraintBottom_toTopOf="@+id/newUsername"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/newIp" />
   <com.google.android.material.button.MaterialButton
     android:id="@+id/edit_delete"
     android:layout_width="0dp"
@@ -12,20 +102,19 @@
     android:layout_marginStart="16dp"
     android:layout_marginEnd="16dp"
     android:text="@string/edit_delete"
+    app:backgroundTint="@color/color_error"
     app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toStartOf="@+id/edit_cancel"
+    app:layout_constraintEnd_toStartOf="@+id/edit_update"
     app:layout_constraintHorizontal_bias="0.5"
     app:layout_constraintStart_toStartOf="parent" />
-
   <com.google.android.material.button.MaterialButton
-    android:id="@+id/edit_cancel"
-    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+    android:id="@+id/edit_update"
     android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:layout_marginBottom="16dp"
     android:layout_marginStart="16dp"
     android:layout_marginEnd="16dp"
-    android:text="@string/edit_cancel"
+    android:text="@string/edit_update"
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintHorizontal_bias="0.5"
