@@ -57,7 +57,7 @@ public class TextInputLayoutUtils {
                     && text.length() > layout.getCounterMaxLength()) {
                   layout.setErrorEnabled(true);
                   layout.setError(resources.getString(R.string.error_input_length));
-                } else if (layout.getId() == R.id.newIp) {
+                } else if (layout.getId() == R.id.new_ip || layout.getId() == R.id.edit_ip) {
                   if (text.split("\\.").length != 4) {
                     layout.setErrorEnabled(true);
                     layout.setError(resources.getString(R.string.error_input_invalid_ip));

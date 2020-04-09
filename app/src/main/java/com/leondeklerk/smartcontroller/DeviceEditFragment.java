@@ -5,15 +5,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import com.google.android.material.textfield.TextInputLayout;
 import com.leondeklerk.smartcontroller.databinding.FragmentDeviceEditBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
+import com.leondeklerk.smartcontroller.utils.IpInputFilter;
+import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +29,7 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
   private ArrayList<SmartDevice> devices;
   private DeviceStorageUtils deviceStorageUtils;
   private FragmentDeviceEditBinding binding;
+  private SmartDevice device;
 
   @Override
   public View onCreateView(
@@ -47,7 +52,13 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
     deviceStorageUtils = new DeviceStorageUtils(preferences);
 
     devices = deviceStorageUtils.getDevices();
+    device = devices.get(devNum);
 
+    // Bind the data class
+    binding.setDevice(device);
+    binding.executePendingBindings();
+
+    // Set button listeners
     binding.editDelete.setOnClickListener(this);
     binding.editUpdate.setOnClickListener(this);
   }
@@ -55,7 +66,8 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
   @Override
   public void onResume() {
     super.onResume();
-    DeviceEditActivity.binding.toolbar.setTitle(devices.get(devNum).getData().getName());
+    // Change the title of the Activity
+    DeviceEditActivity.binding.toolbar.setTitle(device.getData().getName());
   }
 
   @Override
@@ -67,14 +79,38 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
   @Override
   public void onClick(View v) {
     if (v.getId() == R.id.edit_delete) {
+      // Remove the device and store this
       devices.remove(devNum);
       deviceStorageUtils.storeDevices(devices);
+
+      // Create a result intent
       Intent resultIntent = new Intent();
       resultIntent.putExtra(MainActivity.EXTRA_DEV_CHANGED, true);
       context.setResult(Activity.RESULT_OK, resultIntent);
+
+      // Return
       context.onBackPressed();
     } else {
-      Toast.makeText(context, "Unknown device clicked", Toast.LENGTH_SHORT).show();
+      // Add all input layouts to a list
+      ArrayList<TextInputLayout> layouts = new ArrayList<>();
+      layouts.add(binding.editName);
+      layouts.add(binding.editIp);
+
+      // Create new utils to check for errors
+      TextInputLayoutUtils utils = new TextInputLayoutUtils(layouts, context);
+
+      //noinspection ConstantConditions
+      binding.editIp.getEditText().setFilters(new InputFilter[] {new IpInputFilter()});
+
+      // If credentials are enabled, add them
+      if (binding.switchCredentials.isChecked()) {
+        layouts.add(binding.editUsername);
+      }
+      utils.setErrorListeners();
+
+      if (!utils.hasErrors()) {
+        Toast.makeText(context, "Updating...", Toast.LENGTH_SHORT).show();
+      }
     }
   }
 }

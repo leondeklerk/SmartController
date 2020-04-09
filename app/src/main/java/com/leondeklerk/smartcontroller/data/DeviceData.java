@@ -1,10 +1,12 @@
 package com.leondeklerk.smartcontroller.data;
 
+import androidx.databinding.BaseObservable;
+import androidx.databinding.library.baseAdapters.BR;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-public class DeviceData {
+public class DeviceData extends BaseObservable {
 
   @Getter private int id;
   @Getter private String ip;
@@ -31,5 +33,10 @@ public class DeviceData {
     this.isProtected = isProtected;
     this.status = status;
     this.enabled = enabled;
+  }
+
+  public void setProtected(boolean isProtected) {
+    this.isProtected = isProtected;
+    notifyPropertyChanged(BR._all);
   }
 }
