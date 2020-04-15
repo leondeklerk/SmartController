@@ -6,9 +6,11 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import lombok.Getter;
 
 public class NetworkTask extends AsyncTask<String, Integer, Response> {
   private NetworkCallback callback;
+  @Getter
   private int deviceNum;
 
   NetworkTask(NetworkCallback callback, int device) {

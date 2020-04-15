@@ -16,16 +16,20 @@ import com.leondeklerk.smartcontroller.R;
 import com.leondeklerk.smartcontroller.data.DeviceData;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import java.util.ArrayList;
+import lombok.Setter;
 
 public class TextInputLayoutUtils {
 
   private ArrayList<TextInputLayout> layouts;
   private Context context;
   private Resources resources;
+  @Setter String matchPwd;
 
+  //TODO: change this to use AddTextChangedListeners
   public TextInputLayoutUtils(ArrayList<TextInputLayout> layouts, Context context) {
     this.layouts = layouts;
     this.context = context;
+    this.matchPwd = null;
     resources = context.getResources();
   }
 
@@ -51,22 +55,25 @@ public class TextInputLayoutUtils {
               if (!hasFocus) {
                 String text = editText.getText().toString();
                 if (TextUtils.isEmpty(text)) {
-                  layout.setErrorEnabled(true);
-                  layout.setError(resources.getString(R.string.error_input_required));
+                  setError(layout, resources.getString(R.string.error_input_required));
                 } else if (layout.isCounterEnabled()
                     && text.length() > layout.getCounterMaxLength()) {
-                  layout.setErrorEnabled(true);
-                  layout.setError(resources.getString(R.string.error_input_length));
-                } else if (layout.getId() == R.id.newIp) {
+                  setError(layout, resources.getString(R.string.error_input_length));
+                } else if (layout.getId() == R.id.new_ip || layout.getId() == R.id.edit_ip) {
                   if (text.split("\\.").length != 4) {
-                    layout.setErrorEnabled(true);
-                    layout.setError(resources.getString(R.string.error_input_invalid_ip));
+                    setError(layout, resources.getString(R.string.error_input_invalid_ip));
                   } else {
                     layout.setErrorEnabled(false);
+                  }
+                } else if (layout.getId() == R.id.change_pwd_old) {
+                  if (!getText(layout).equals(matchPwd)) {
+                    setError(layout, resources.getString(R.string.update_pwd_wrong));
                   }
                 } else {
                   layout.setErrorEnabled(false);
                 }
+              } else {
+                layout.setErrorEnabled(false);
               }
             }
           });
@@ -116,5 +123,42 @@ public class TextInputLayoutUtils {
       data.setUsername(inputs.get(2)).setPassword(inputs.get(3));
     }
     return new SmartDevice(data);
+  }
+
+  /**
+   * Check if all the input in the given layouts is the same input.
+   *
+   * @return true if all are equals, false if not.
+   */
+  public boolean checkEqual(TextInputLayout first, TextInputLayout second) {
+    first.setErrorEnabled(false);
+    second.setErrorEnabled(false);
+    if (!getText(first).equals(getText(second))) {
+      setError(first, resources.getString(R.string.update_pwd_no_match));
+      setError(second, resources.getString(R.string.update_pwd_no_match));
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Retrieve a string from a TextInputLayout.
+   *
+   * @param layout the layout to retrieve the text from.
+   * @return the input text.
+   */
+  public static String getText(TextInputLayout layout) {
+    return layout.getEditText().getText().toString();
+  }
+
+  /**
+   * Set an error on a TextInputLayout.
+   *
+   * @param layout the layout to set the error on.
+   * @param error the value of the error.
+   */
+  public static void setError(TextInputLayout layout, String error) {
+    layout.setErrorEnabled(true);
+    layout.setError(error);
   }
 }
