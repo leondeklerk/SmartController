@@ -68,8 +68,8 @@
         android:layout_marginTop="8dp"
         android:layout_marginStart="16dp"
         android:alpha="?alphaEmphasisMedium"
-        android:text="@{@string/device_ip + device.data.ip}"
         android:textAppearance="?textAppearanceOverline"
+        android:text="@{@string/device_ip + device.data.ip}"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/device_status" />
 

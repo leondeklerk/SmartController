@@ -1,9 +1,8 @@
 package com.leondeklerk.smartcontroller;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-
+import static org.junit.Assert.*;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -13,6 +12,6 @@ import org.junit.jupiter.api.Test;
 public class ExampleUnitTest {
   @Test
   public void addition_isCorrect() {
-    Assertions.assertEquals(4, 2 + 2);
+    assertEquals(4, 2 + 2);
   }
 }
