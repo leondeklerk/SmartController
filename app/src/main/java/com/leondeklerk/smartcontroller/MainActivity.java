@@ -41,7 +41,6 @@ public class MainActivity extends AppCompatActivity
   public static final String EXTRA_DEV_REMOVED = "com.leondeklerk.smartcontroller.DEV_REMOVED";
   public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
   private DeviceDialogBinding dialogBinding;
-  //  private ArrayList<NetworkTask> tasks;
   private Map<Integer, NetworkTask> taskMap;
   private DeviceStorageUtils deviceStorageUtils;
   DeviceAdapter deviceAdapter;
@@ -66,7 +65,6 @@ public class MainActivity extends AppCompatActivity
 
     deviceStorageUtils = new DeviceStorageUtils(preferences);
     taskMap = new HashMap<>();
-    //    tasks = new ArrayList<>();
 
     devices = deviceStorageUtils.getDevices();
 
@@ -104,14 +102,12 @@ public class MainActivity extends AppCompatActivity
       curTask.cancel(true);
     }
     taskMap.put(taskIndex, task);
-    //    tasks.add(task);
   }
 
   @Override
   public void onFinish(NetworkTask task, Response response, int deviceNum) {
     // Remove the task from the list of tasks
     taskMap.remove(deviceNum);
-    //    tasks.remove(task);
 
     DeviceData device = devices.get(deviceNum).getData();
 
@@ -146,7 +142,6 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onCancel(NetworkTask task) {
     taskMap.remove(task.getDeviceNum());
-    //    tasks.remove(task);
   }
 
   @Override
@@ -258,20 +253,6 @@ public class MainActivity extends AppCompatActivity
     // Rebind the listeners to take the new layouts into account
     layoutUtils.setErrorListeners();
   }
-
-//  /**
-//   * Cancel all outstanding tasks, ending them if they are already running or stopping them before
-//   * they even begin.
-//   */
-//  public void cancelTasks() {
-//    //    for (NetworkTask task : tasks) {
-//    //      task.cancel(true);
-//    //    }
-//    Log.d("Map size", String.valueOf(taskMap.keySet().size()));
-//    for (int key : taskMap.keySet()) {
-//      taskMap.get(key).cancel(true);
-//    }
-//  }
 
   /**
    * Ping a device for its status, will ping all devices if -1 was supplied.
