@@ -54,7 +54,7 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginEnd="16dp"
-      android:checked="@={device.data.protected}"
+      android:checked="@{device.data.protected}"
       app:layout_constraintBottom_toBottomOf="@+id/text_credentials"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintTop_toTopOf="@+id/text_credentials" />

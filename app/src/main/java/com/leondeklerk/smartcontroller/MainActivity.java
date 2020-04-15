@@ -30,15 +30,19 @@ import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
 import com.leondeklerk.smartcontroller.utils.IpInputFilter;
 import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
     implements NetworkCallback, View.OnClickListener {
 
+  public static final String EXTRA_DEV_REMOVED = "com.leondeklerk.smartcontroller.DEV_REMOVED";
   public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
   private DeviceDialogBinding dialogBinding;
-  private ArrayList<NetworkTask> tasks;
+  //  private ArrayList<NetworkTask> tasks;
+  private Map<Integer, NetworkTask> taskMap;
   private DeviceStorageUtils deviceStorageUtils;
   DeviceAdapter deviceAdapter;
   Context context;
@@ -61,7 +65,8 @@ public class MainActivity extends AppCompatActivity
     preferences = this.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
 
     deviceStorageUtils = new DeviceStorageUtils(preferences);
-    tasks = new ArrayList<>();
+    taskMap = new HashMap<>();
+    //    tasks = new ArrayList<>();
 
     devices = deviceStorageUtils.getDevices();
 
@@ -76,7 +81,7 @@ public class MainActivity extends AppCompatActivity
     recyclerView.setAdapter(deviceAdapter);
 
     // Ping the devices for their status
-    pingStatus(false);
+    pingStatus(-1);
 
     // Set the FAB listener for device creation
     binding.fab.setOnClickListener(
@@ -93,13 +98,20 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onPreExecute(NetworkTask task) {
-    tasks.add(task);
+    int taskIndex = task.getDeviceNum();
+    NetworkTask curTask = taskMap.get(taskIndex);
+    if (curTask != null) {
+      curTask.cancel(true);
+    }
+    taskMap.put(taskIndex, task);
+    //    tasks.add(task);
   }
 
   @Override
   public void onFinish(NetworkTask task, Response response, int deviceNum) {
     // Remove the task from the list of tasks
-    tasks.remove(task);
+    taskMap.remove(deviceNum);
+    //    tasks.remove(task);
 
     DeviceData device = devices.get(deviceNum).getData();
 
@@ -133,7 +145,8 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onCancel(NetworkTask task) {
-    tasks.remove(task);
+    taskMap.remove(task.getDeviceNum());
+    //    tasks.remove(task);
   }
 
   @Override
@@ -141,7 +154,6 @@ public class MainActivity extends AppCompatActivity
     // Check if any input field has errors
     if (!layoutUtils.hasErrors()) {
       // Cancel all tasks and dismiss the dialog
-      cancelTasks();
       addDeviceDialog.dismiss();
 
       // Check if the credentials part is enabled
@@ -152,18 +164,13 @@ public class MainActivity extends AppCompatActivity
       ArrayList<SmartDevice> newList = new ArrayList<>(devices);
       newList.add(device);
 
-      // Update the recyclerview
-      DiffUtilCallback diffUtilCallback = new DiffUtilCallback(devices, newList);
-      DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
-      devices.clear();
-      devices.addAll(newList);
-      diff.dispatchUpdatesTo(deviceAdapter);
+      updateAdapter(devices, newList);
 
       // Store the new list of devices
       deviceStorageUtils.storeDevices(devices);
 
       // Ping the status of the new device
-      pingStatus(true);
+      pingStatus(devices.size() - 1);
     }
   }
 
@@ -172,22 +179,19 @@ public class MainActivity extends AppCompatActivity
     super.onActivityResult(requestCode, resultCode, data);
     // If the activity closed normally
     if (resultCode == RESULT_OK) {
-      // Check if data changed is flagged true
-      if (data.getBooleanExtra(EXTRA_DEV_CHANGED, false)) {
-        // Stop all ongoing tasks
-        cancelTasks();
+      int removed = data.getIntExtra(EXTRA_DEV_REMOVED, -1);
+      if (removed >= 0) {
+        NetworkTask task = taskMap.get(removed);
+        if (task != null) task.cancel(true);
+        updateAdapter(devices, deviceStorageUtils.getDevices());
+      }
 
-        // Update the RecyclerView accordingly
-        ArrayList<SmartDevice> oldList = new ArrayList<>(devices);
-        ArrayList<SmartDevice> newList = deviceStorageUtils.getDevices();
-        DiffUtilCallback diffUtilCallback = new DiffUtilCallback(oldList, newList);
-        DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
-        devices.clear();
-        devices.addAll(newList);
-        diff.dispatchUpdatesTo(deviceAdapter);
-
-        // Ping each device for it's status
-        pingStatus(false);
+      int changed = data.getIntExtra(EXTRA_DEV_CHANGED, -1);
+      if (changed >= 0) {
+        NetworkTask task = taskMap.get(changed);
+        if (task != null) task.cancel(true);
+        updateAdapter(devices, deviceStorageUtils.getDevices());
+        pingStatus(changed);
       }
     }
   }
@@ -255,33 +259,64 @@ public class MainActivity extends AppCompatActivity
     layoutUtils.setErrorListeners();
   }
 
+//  /**
+//   * Cancel all outstanding tasks, ending them if they are already running or stopping them before
+//   * they even begin.
+//   */
+//  public void cancelTasks() {
+//    //    for (NetworkTask task : tasks) {
+//    //      task.cancel(true);
+//    //    }
+//    Log.d("Map size", String.valueOf(taskMap.keySet().size()));
+//    for (int key : taskMap.keySet()) {
+//      taskMap.get(key).cancel(true);
+//    }
+//  }
+
   /**
-   * Cancel all outstanding tasks, ending them if they are already running or stopping them before
-   * they even begin.
+   * Ping a device for its status, will ping all devices if -1 was supplied.
+   *
+   * @param id the id of the device to ping.
    */
-  public void cancelTasks() {
-    for (NetworkTask task : tasks) {
-      task.cancel(true);
+  public void pingStatus(int id) {
+    if (id >= 0) {
+      createStatusTask(id);
+    } else {
+      // Ping all devices
+      for (int i = 0; i < devices.size(); i++) {
+        createStatusTask(i);
+      }
     }
   }
 
   /**
-   * Ping devices for their status, when using the last boolean only the last added device will be
-   * pinged. This is to provide the functionality for newly added devices.
+   * Create a network task to ping a device for its status.
    *
-   * @param last whether to only ping the last (new) device or not.
+   * @param id the id of the device.
    */
-  public void pingStatus(boolean last) {
-    int start = 0;
-    if (last) {
-      start = devices.size() - 1;
-    }
-    // Create a new task and ping the device for their status
-    for (int i = start; i < devices.size(); i++) {
-      NetworkTask task = new NetworkTask((NetworkCallback) context, i);
-      SmartDevice device = devices.get(i);
-      task.executeOnExecutor(
-          AsyncTask.THREAD_POOL_EXECUTOR, device.getCommand(device.getPowerStatus()));
-    }
+  public void createStatusTask(int id) {
+    NetworkTask task = new NetworkTask((NetworkCallback) context, id);
+    SmartDevice device = devices.get(id);
+    task.executeOnExecutor(
+        AsyncTask.THREAD_POOL_EXECUTOR, device.getCommand(device.getPowerStatus()));
+  }
+
+  /**
+   * Calculate the difference between two lists of devices and dispatch this to the DeviceAdapter to
+   * update the content of the RecyclerView.
+   *
+   * @param oldList the current list of the RecyclerView.
+   * @param newList the new list to calculate the difference with.
+   */
+  public void updateAdapter(ArrayList<SmartDevice> oldList, ArrayList<SmartDevice> newList) {
+    // Calculate the difference
+    DiffUtilCallback diffUtilCallback = new DiffUtilCallback(oldList, newList);
+    DiffResult diff = DiffUtil.calculateDiff(diffUtilCallback);
+
+    // Set the list of devices to be up to date
+    devices.clear();
+    devices.addAll(newList);
+
+    diff.dispatchUpdatesTo(deviceAdapter);
   }
 }

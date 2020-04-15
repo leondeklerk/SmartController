@@ -74,7 +74,6 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
           }
         });
 
-    //    binding.devicePower.setEnabled(false);
     binding.devicePower.setOnCheckedChangeListener(
         new OnCheckedChangeListener() {
           @Override
