@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.InputFilter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,8 +26,7 @@ import com.leondeklerk.smartcontroller.databinding.DeviceDialogBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
 import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
-import com.leondeklerk.smartcontroller.utils.IpInputFilter;
-import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
+import com.leondeklerk.smartcontroller.utils.TextInputUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,10 +41,10 @@ public class MainActivity extends AppCompatActivity
   private DeviceDialogBinding dialogBinding;
   private Map<Integer, NetworkTask> taskMap;
   private DeviceStorageUtils deviceStorageUtils;
+  private ArrayList<TextInputLayout> layouts;
   DeviceAdapter deviceAdapter;
   Context context;
   ArrayList<SmartDevice> devices;
-  TextInputLayoutUtils layoutUtils;
   AlertDialog addDeviceDialog;
   SharedPreferences preferences;
 
@@ -146,8 +144,11 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onClick(View v) {
+    // Check if the ip is in the correct format
+    TextInputUtils.checkIp(dialogBinding.newIp);
+
     // Check if any input field has errors
-    if (!layoutUtils.hasErrors()) {
+    if (!TextInputUtils.hasErrors(layouts)) {
       // Cancel all tasks and dismiss the dialog
       addDeviceDialog.dismiss();
 
@@ -155,7 +156,7 @@ public class MainActivity extends AppCompatActivity
       boolean isProtected = dialogBinding.switchCredentials.isChecked();
 
       // Create the new device and add it
-      SmartDevice device = layoutUtils.readDevice(isProtected, devices.size());
+      SmartDevice device = TextInputUtils.readDevice(layouts, isProtected, devices.size());
       ArrayList<SmartDevice> newList = new ArrayList<>(devices);
       newList.add(device);
 
@@ -210,14 +211,14 @@ public class MainActivity extends AppCompatActivity
             .setNegativeButton(getString(android.R.string.cancel), null)
             .create();
 
-    // Add all TextInputLayouts to a LayoutUtils for error checking
-    ArrayList<TextInputLayout> layouts = new ArrayList<>();
+    // Add all TextInputLayouts to a the list for error checking
+    layouts = new ArrayList<>();
     layouts.add(dialogBinding.newName);
     layouts.add(dialogBinding.newIp);
-    layoutUtils = new TextInputLayoutUtils(layouts, context);
 
-    //noinspection ConstantConditions
-    dialogBinding.newIp.getEditText().setFilters(new InputFilter[] {new IpInputFilter()});
+    // Register error listeners
+    TextInputUtils.setListener(dialogBinding.newName, TextInputUtils.DEFAULT_TYPE);
+    TextInputUtils.setListener(dialogBinding.newIp, TextInputUtils.IP_TYPE);
 
     // Add a listener to the switch to enable / disable credentials
     dialogBinding.switchCredentials.setOnCheckedChangeListener(
@@ -227,13 +228,12 @@ public class MainActivity extends AppCompatActivity
             setCredentialsAvailability(dialogBinding, isChecked);
           }
         });
-    layoutUtils.setErrorListeners();
     return dialog;
   }
 
   /**
    * Enable or disable the credential input fields on a device creation Dialog. This also registers
-   * the correct layouts in the layoutUtils.
+   * the correct error listeners.
    *
    * @param dialogBinding the view binding containing the views of the dialog.
    * @param enable boolean whether the fields should be enabled or not
@@ -242,16 +242,17 @@ public class MainActivity extends AppCompatActivity
     dialogBinding.newUsername.setEnabled(enable);
     dialogBinding.newPassword.setEnabled(enable);
 
-    // Add the layouts if they are enabled or remove them if not
+    // Add the layouts and there error listeners  if they are enabled or remove them if not
     if (enable) {
-      layoutUtils.addLayout(dialogBinding.newUsername);
-      layoutUtils.addLayout(dialogBinding.newPassword);
+      layouts.add(dialogBinding.newUsername);
+      TextInputUtils.setListener(dialogBinding.newUsername, TextInputUtils.DEFAULT_TYPE);
+
+      layouts.add(dialogBinding.newPassword);
+      TextInputUtils.setListener(dialogBinding.newPassword, TextInputUtils.DEFAULT_TYPE);
     } else {
-      layoutUtils.removeLayout(dialogBinding.newUsername);
-      layoutUtils.removeLayout(dialogBinding.newPassword);
+      layouts.remove(dialogBinding.newUsername);
+      layouts.remove(dialogBinding.newPassword);
     }
-    // Rebind the listeners to take the new layouts into account
-    layoutUtils.setErrorListeners();
   }
 
   /**
