@@ -1,34 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:app="http://schemas.android.com/apk/res-auto"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto">
+  <androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-  <com.google.android.material.button.MaterialButton
-    android:id="@+id/edit_delete"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
-    android:text="@string/edit_delete"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toStartOf="@+id/edit_cancel"
-    app:layout_constraintHorizontal_bias="0.5"
-    app:layout_constraintStart_toStartOf="parent" />
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/edit_password"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginEnd="16dp"
+      android:enabled="@{device.data.protected}"
+      android:insetBottom="3dp"
+      android:insetTop="3dp"
+      android:text="@string/edit_password"
+      android:textSize="14sp"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/edit_username" />
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/edit_delete"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginEnd="16dp"
+      android:insetBottom="3dp"
+      android:insetTop="3dp"
+      android:text="@string/edit_delete"
+      app:backgroundTint="@color/color_error"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toStartOf="@+id/edit_update"
+      app:layout_constraintHorizontal_bias="0.5"
+      app:layout_constraintStart_toStartOf="parent" />
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/edit_update"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginEnd="16dp"
+      android:insetBottom="3dp"
+      android:insetTop="3dp"
+      android:text="@string/edit_update"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.5"
+      app:layout_constraintStart_toEndOf="@+id/edit_delete" />
+    <com.google.android.material.switchmaterial.SwitchMaterial
+      android:id="@+id/switch_credentials"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginEnd="16dp"
+      android:checked="@{device.data.protected}"
+      app:layout_constraintBottom_toBottomOf="@+id/text_credentials"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintTop_toTopOf="@+id/text_credentials" />
+    <com.google.android.material.textfield.TextInputLayout
+      android:id="@+id/edit_name"
+      style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginEnd="16dp"
+      android:hint="@string/edit_label_name"
+      app:counterEnabled="true"
+      app:counterMaxLength="20"
+      app:errorEnabled="true"
+      app:helperTextEnabled="true"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent">
 
-  <com.google.android.material.button.MaterialButton
-    android:id="@+id/edit_cancel"
-    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
-    android:text="@string/edit_cancel"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintHorizontal_bias="0.5"
-    app:layout_constraintStart_toEndOf="@+id/edit_delete" />
+      <com.google.android.material.textfield.TextInputEditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:importantForAutofill="noExcludeDescendants"
+        android:singleLine="true"
+        android:text="@{device.data.name}" />
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+      android:id="@+id/edit_ip"
+      style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginEnd="16dp"
+      android:hint="@string/edit_label_ip"
+      app:boxBackgroundMode="outline"
+      app:errorEnabled="true"
+      app:helperTextEnabled="false"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/edit_name">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+      <com.google.android.material.textfield.TextInputEditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:digits="0123456789."
+        android:inputType="number|numberDecimal"
+        android:singleLine="true"
+        android:text="@{device.data.ip}" />
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textfield.TextInputLayout
+      android:id="@+id/edit_username"
+      style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginEnd="16dp"
+      android:enabled="@{device.data.protected}"
+      android:hint="@string/edit_label_username"
+      app:counterEnabled="true"
+      app:counterMaxLength="32"
+      app:errorEnabled="true"
+      app:helperTextEnabled="true"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/switch_credentials">
+
+      <com.google.android.material.textfield.TextInputEditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:text="@{device.data.username}" />
+    </com.google.android.material.textfield.TextInputLayout>
+    <com.google.android.material.textview.MaterialTextView
+      android:id="@+id/text_credentials"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:layout_marginBottom="16dp"
+      android:layout_marginStart="16dp"
+      android:text="@string/add_switch_text"
+      android:textSize="18sp"
+      app:layout_constraintBottom_toTopOf="@+id/edit_username"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/edit_ip" />
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+  <data>
+    <variable
+      name="device"
+      type="com.leondeklerk.smartcontroller.devices.SmartDevice" />
+  </data>
+</layout>
