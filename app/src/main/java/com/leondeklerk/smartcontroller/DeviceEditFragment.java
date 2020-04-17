@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.text.InputFilter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,8 +21,7 @@ import com.leondeklerk.smartcontroller.databinding.FragmentDeviceEditBinding;
 import com.leondeklerk.smartcontroller.databinding.PasswordDialogBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
-import com.leondeklerk.smartcontroller.utils.IpInputFilter;
-import com.leondeklerk.smartcontroller.utils.TextInputLayoutUtils;
+import com.leondeklerk.smartcontroller.utils.TextInputUtils;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,9 +36,10 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
   private SmartDevice device;
   private SmartDevice initial;
   private PasswordDialogBinding pwdBinding;
-  private TextInputLayoutUtils fragUtils;
-  private TextInputLayoutUtils pwdUtils;
+  private ArrayList<TextInputLayout> fragList, pwdList;
   private AlertDialog dialog;
+  private String referencePwd;
+  private boolean pwdErrors = true;
 
   @Override
   public View onCreateView(
@@ -64,7 +63,10 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
 
     devices = deviceStorageUtils.getDevices();
     device = devices.get(devNum);
+
+    // Set up current device references to refer to
     initial = SmartDevice.clone(device);
+    referencePwd = device.getData().getPassword();
 
     // Bind the data class
     binding.setDevice(device);
@@ -123,33 +125,36 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
         // Create a new dialog and set it up
         dialog = createPasswordDialog();
         dialog.show();
-        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(this);
         setUpPwdDialog();
         break;
       case android.R.id.button1:
-        if (pwdUtils.hasErrors()) return;
+        // Check if the two new passwords match
+        TextInputUtils.checkPwd(pwdBinding.changePwdOld, referencePwd);
+        TextInputUtils.checkEqual(pwdBinding.changePwdNew, pwdBinding.changePwdNew2);
 
-        pwdBinding.changePwdOld.setErrorEnabled(false);
+        if (TextInputUtils.hasErrors(pwdList)) return;
 
-        if (pwdUtils.checkEqual(pwdBinding.changePwdNew, pwdBinding.changePwdNew2)) {
-          device.getData().setPassword(TextInputLayoutUtils.getText(pwdBinding.changePwdNew));
-          dialog.dismiss();
-        }
+        device.getData().setPassword(TextInputUtils.getText(pwdBinding.changePwdNew));
+        dialog.dismiss();
+        pwdErrors = false;
+        break;
+      case android.R.id.button2:
+        // Reset the pwdList since it is not used
+        pwdList = null;
+        dialog.dismiss();
         break;
       case R.id.edit_update:
-        if (!fragUtils.hasErrors()) {
-          // TODO: Passwords need more work only changing name should be possible.
-          if (!binding.switchCredentials.isChecked()
-              || (pwdUtils != null && !pwdUtils.hasErrors())) {
+        TextInputUtils.checkIp(binding.editIp);
+
+        if (!TextInputUtils.hasErrors(fragList)) {
+          // Check if all requirements regarding the passwords are met
+          if (checkPwdRequirements()) {
+            // Update the device and return
             updateDevice();
             context.onBackPressed();
           } else {
+            // Upon up the password screen
             binding.editPassword.performClick();
-            //            Snackbar.make(
-            //                binding.getRoot(),
-            //                getString(R.string.edit_password_required),
-            //                Snackbar.LENGTH_LONG)
-            //                .show();
           }
         } else {
           setResult(false);
@@ -175,79 +180,111 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
         .create();
   }
 
-  /**
-   * Setup the different properties for the password dialog. This mainly consists of setting up the
-   * correct error messages for the layouts.
-   */
+  /** */
   private void setUpPwdDialog() {
-    pwdBinding.changePwdOld.requestFocus();
+    // Set the listeners of the buttons
+    dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(this);
+    dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setOnClickListener(this);
 
-    ArrayList<TextInputLayout> layouts = new ArrayList<>();
-    layouts.add(pwdBinding.changePwdNew);
-    layouts.add(pwdBinding.changePwdNew2);
+    // Add the layouts to the list
+    pwdList = new ArrayList<>();
+    pwdList.add(pwdBinding.changePwdOld);
+    pwdList.add(pwdBinding.changePwdNew);
+    pwdList.add(pwdBinding.changePwdNew2);
 
-    pwdUtils = new TextInputLayoutUtils(layouts, context);
+    // Set their error listeners
+    TextInputUtils.setListener(pwdBinding.changePwdNew, TextInputUtils.DEFAULT_TYPE);
+    TextInputUtils.setListener(pwdBinding.changePwdNew2, TextInputUtils.DEFAULT_TYPE);
 
-    if (device.getData().getPassword() != null) {
-      pwdUtils.addLayout(pwdBinding.changePwdOld);
-      pwdUtils.setMatchPwd(device.getData().getPassword());
+    // If there already was a password
+    if (referencePwd != null) {
+      // Set up the field for the old password
+      TextInputUtils.setListener(pwdBinding.changePwdOld, TextInputUtils.DEFAULT_TYPE);
+      pwdBinding.changePwdOld.requestFocus();
     } else {
+      // If there was no current password, disable it's input field
+      pwdList.remove(pwdBinding.changePwdOld);
       pwdBinding.changePwdOld.setEnabled(false);
+      pwdBinding.changePwdNew.requestFocus();
     }
-
-    pwdUtils.setErrorListeners();
   }
 
-  /** Set up the TextInputLayouts in the fragment, adding their error listeners. */
-  private void setUpUtilsFrag(boolean checked) {
-    ArrayList<TextInputLayout> layouts = new ArrayList<>();
+  /**
+   * Set up the input fields in the fragment, adding their error listeners.
+   *
+   * @param hasCredentials whether or not credentials are enabled.
+   */
+  private void setUpUtilsFrag(boolean hasCredentials) {
+    fragList = new ArrayList<>();
+
     // Add all input layouts to a list
-    layouts.add(binding.editName);
-    layouts.add(binding.editIp);
+    fragList.add(binding.editName);
+    fragList.add(binding.editIp);
 
-    // Create new utils to check for errors
-    fragUtils = new TextInputLayoutUtils(layouts, context);
-
-    //noinspection ConstantConditions
-    binding.editIp.getEditText().setFilters(new InputFilter[] {new IpInputFilter()});
+    // Set the error listeners
+    TextInputUtils.setListener(binding.editName, TextInputUtils.DEFAULT_TYPE);
+    TextInputUtils.setListener(binding.editIp, TextInputUtils.IP_TYPE);
 
     // If credentials are enabled, add them
-    if (checked) {
-      fragUtils.addLayout(binding.editUsername);
+    if (hasCredentials) {
+      TextInputUtils.setListener(binding.editUsername, TextInputUtils.DEFAULT_TYPE);
+      fragList.add(binding.editUsername);
     } else {
       device.getData().setPassword(null).setUsername(null);
     }
-    fragUtils.setErrorListeners();
   }
 
   /**
    * Set the result intent of the parent activity, this will be checked upon reentry of the
    * MainActivity.
    *
-   * @param removed if the device was removed
+   * @param removed true if the device was removed, false if not
    */
   private void setResult(boolean removed) {
+    // Create a new intent
     Intent resultIntent = new Intent();
     if (removed) {
+      // If the device was removed, flag this
       resultIntent.putExtra(MainActivity.EXTRA_DEV_REMOVED, devNum);
     } else {
       if (!initial.equals(device)) {
+        // If the device was edited, flag this
         resultIntent.putExtra(MainActivity.EXTRA_DEV_CHANGED, devNum);
       }
     }
     context.setResult(Activity.RESULT_OK, resultIntent);
   }
 
-  /** Update the values of the current device. */
+  /** Update and store the current device. */
   private void updateDevice() {
-    // TODO change back to two-way bindings after changing error listeners
+    // Update the device data
     device
         .getData()
-        .setName(TextInputLayoutUtils.getText(binding.editName))
-        .setIp(TextInputLayoutUtils.getText(binding.editIp))
+        .setName(TextInputUtils.getText(binding.editName))
+        .setIp(TextInputUtils.getText(binding.editIp))
         .setProtected(binding.switchCredentials.isChecked())
-        .setUsername(TextInputLayoutUtils.getText(binding.editUsername));
+        .setUsername(TextInputUtils.getText(binding.editUsername));
     setResult(false);
+
+    // Store the new device data
     deviceStorageUtils.storeDevices(devices);
+  }
+
+  /**
+   * Checks if the requirements for credentials are met. There are three different cases relevant:
+   * 1. There are no credentials enabled. 2. Only the username might have been updated, the password
+   * not. 3. The password was updated.
+   *
+   * @return true if the requirements for each type of case are met correctly, false if not.
+   */
+  private boolean checkPwdRequirements() {
+    // No credentials
+    if (!binding.switchCredentials.isChecked()) {
+      return true;
+    } else if (pwdList == null && referencePwd != null) {
+      // Only the username was updated
+      return true;
+    } else return !pwdErrors;
+    // The password was updated, return if it had any errors or not.
   }
 }
