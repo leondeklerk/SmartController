@@ -26,11 +26,11 @@ public class DiffUtilCallback extends Callback {
 
   @Override
   public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-    return oldList.get(oldItemPosition) == newList.get(newItemPosition);
+    return oldList.get(oldItemPosition).equals(newList.get(newItemPosition));
   }
 
   @Override
   public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-    return oldList.get(oldItemPosition).getData() == newList.get(newItemPosition).getData();
+    return oldList.get(oldItemPosition).getData().equals(newList.get(newItemPosition).getData());
   }
 }
