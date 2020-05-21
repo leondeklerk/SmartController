@@ -82,7 +82,8 @@ public class SmartDevice {
                 otherData.getIp(),
                 otherData.isProtected(),
                 otherData.getStatus(),
-                otherData.isEnabled())
+                otherData.isEnabled(),
+                otherData.getType())
             .setPassword(otherData.getPassword())
             .setUsername(otherData.getUsername()));
   }

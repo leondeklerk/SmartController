@@ -10,6 +10,7 @@ import android.widget.EditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.leondeklerk.smartcontroller.R;
 import com.leondeklerk.smartcontroller.data.DeviceData;
+import com.leondeklerk.smartcontroller.devices.RGBLedController;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import java.util.ArrayList;
 
@@ -18,7 +19,8 @@ import java.util.ArrayList;
  * from setting listeners, to checking for errors and comparing values.
  */
 public class TextInputUtils {
-
+  public static final String DEV_TYPE_DEF = "DEFAULT_TYPE";
+  public static final String DEV_TYPE_RGB = "RGB_CONTROLLER_TYPE";
   // An input type that is an IPV4 ip
   public static final String IP_TYPE = "IP_TYPE";
   // An input type that is a field with a max length
@@ -74,7 +76,7 @@ public class TextInputUtils {
    */
   @SuppressWarnings("ConstantConditions")
   public static SmartDevice readDevice(
-      ArrayList<TextInputLayout> layouts, boolean isProtected, int nextId) {
+      String type, ArrayList<TextInputLayout> layouts, boolean isProtected, int nextId) {
     ArrayList<String> inputs = new ArrayList<>();
 
     // Read each input and add it to the list of inputs
@@ -85,11 +87,15 @@ public class TextInputUtils {
 
     // Create a new device
     DeviceData data =
-        new DeviceData(nextId, inputs.get(0), inputs.get(1), isProtected, "UNKNOWN", false);
+        new DeviceData(nextId, inputs.get(0), inputs.get(1), isProtected, "UNKNOWN", false, type);
 
     // If it requires credentials, also add these
     if (isProtected) {
       data.setUsername(inputs.get(2)).setPassword(inputs.get(3));
+    }
+    // Return the type of device
+    if (type.equals(DEV_TYPE_RGB)) {
+      return new RGBLedController(data);
     }
     return new SmartDevice(data);
   }

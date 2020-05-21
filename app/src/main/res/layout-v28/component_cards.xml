@@ -35,6 +35,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+      <com.google.android.material.chip.Chip
+        android:id="@+id/device_color"
+        style="@style/Widget.MaterialComponents.Chip.Action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_gravity="center_vertical|start"
+        android:ellipsize="end"
+        android:text="@string/device_color"
+        android:visibility='@{device.data.getType().equals("RGB_CONTROLLER_TYPE") ? 0 : 8}'
+        app:chipIcon="@drawable/ic_settings_24px"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/device_edit" />
 
       <com.google.android.material.switchmaterial.SwitchMaterial
         android:id="@+id/device_power"
@@ -48,18 +62,6 @@
         app:layout_constraintBottom_toTopOf="@+id/device_edit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-      <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/device_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="16dp"
-        android:alpha="?alphaEmphasisMedium"
-        android:text='@{device.data.status == null ? @string/device_unknown : @string/device_status + device.data.status}'
-        android:textAppearance="?textAppearanceOverline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/device_name" />
 
       <com.google.android.material.textview.MaterialTextView
         android:id="@+id/device_ip"
@@ -84,6 +86,18 @@
         android:textAppearance="?textAppearanceHeadline6"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+      <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/device_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:alpha="?alphaEmphasisMedium"
+        android:text='@{device.data.status == null ? @string/device_unknown : @string/device_status + device.data.status}'
+        android:textAppearance="?textAppearanceOverline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/device_name" />
 
       <com.leondeklerk.smartcontroller.widget.ColorDotView
         android:id="@+id/device_led"

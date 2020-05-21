@@ -7,6 +7,7 @@
   <string name="device_edit">Edit</string>
   <string name="status_unknown">unknown</string>
   <string name="device_unknown">status - unknown</string>
+  <string name="device_color">Color</string>
 
   <!-- Device creation dialog -->
   <string name="add_device_title">Add new device</string>
@@ -20,6 +21,8 @@
   <string name="error_input_required">Input required</string>
   <string name="error_input_length">Input length surpassed</string>
   <string name="error_input_invalid_ip">No valid IP address</string>
+  <string name="add_label_type_def">Smart device</string>
+  <string name="add_label_type_rgb">RGB Controller</string>
 
   <string name="dev_prefs">com.leondeklerk.smartcontroller.device_preferences</string>
 
@@ -40,6 +43,12 @@
   <string name="update_pwd_new">New password</string>
   <string name="update_pwd_repeat">Repeat new password</string>
 
+  <!-- Color screen -->
+  <string name="color_cancel">Cancel</string>
+  <string name="color_set">Set</string>
+  <string name="color_info">Select the color</string>
+
   <!-- template shizzle-->
   <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</string>
+
 </resources>

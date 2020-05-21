@@ -20,7 +20,10 @@
     <activity
       android:name=".DeviceEditActivity"
       android:parentActivityName=".MainActivity"
-      android:windowSoftInputMode="adjustPan"/>
+      android:windowSoftInputMode="adjustPan" />
+    <activity
+      android:name=".DeviceColorActivity"
+      android:parentActivityName=".MainActivity" />
   </application>
 
   <uses-permission android:name="android.permission.INTERNET" />

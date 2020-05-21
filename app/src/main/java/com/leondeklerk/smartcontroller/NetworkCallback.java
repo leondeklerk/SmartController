@@ -4,9 +4,9 @@ import com.leondeklerk.smartcontroller.data.Response;
 
 public interface NetworkCallback {
 
-  void onPreExecute(NetworkTask task);
+  void onPreExecute(ResponseTask task);
 
-  void onFinish(NetworkTask task, Response response, int deviceNum);
+  void onFinish(ResponseTask task, Response response, int deviceNum);
 
-  void onCancel(NetworkTask task);
+  void onCancel(ResponseTask task);
 }

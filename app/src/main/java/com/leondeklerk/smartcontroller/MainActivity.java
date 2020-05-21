@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity
   public static final String EXTRA_DEV_REMOVED = "com.leondeklerk.smartcontroller.DEV_REMOVED";
   public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
   private DeviceDialogBinding dialogBinding;
-  private Map<Integer, NetworkTask> taskMap;
+  private Map<Integer, ResponseTask> taskMap;
   private DeviceStorageUtils deviceStorageUtils;
   private ArrayList<TextInputLayout> layouts;
   DeviceAdapter deviceAdapter;
@@ -93,9 +93,9 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void onPreExecute(NetworkTask task) {
+  public void onPreExecute(ResponseTask task) {
     int taskIndex = task.getDeviceNum();
-    NetworkTask curTask = taskMap.get(taskIndex);
+    ResponseTask curTask = taskMap.get(taskIndex);
     if (curTask != null) {
       curTask.cancel(true);
     }
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void onFinish(NetworkTask task, Response response, int deviceNum) {
+  public void onFinish(ResponseTask task, Response response, int deviceNum) {
     // Remove the task from the list of tasks
     taskMap.remove(deviceNum);
 
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void onCancel(NetworkTask task) {
+  public void onCancel(ResponseTask task) {
     taskMap.remove(task.getDeviceNum());
   }
 
@@ -155,8 +155,15 @@ public class MainActivity extends AppCompatActivity
       // Check if the credentials part is enabled
       boolean isProtected = dialogBinding.switchCredentials.isChecked();
 
+      // Get the type of SmartDevice
+      int typeId = dialogBinding.newType.getCheckedButtonId();
+      String type = TextInputUtils.DEV_TYPE_DEF;
+      if (typeId == dialogBinding.typeController.getId()) {
+        type = TextInputUtils.DEV_TYPE_RGB;
+      }
+
       // Create the new device and add it
-      SmartDevice device = TextInputUtils.readDevice(layouts, isProtected, devices.size());
+      SmartDevice device = TextInputUtils.readDevice(type, layouts, isProtected, devices.size());
       ArrayList<SmartDevice> newList = new ArrayList<>(devices);
       newList.add(device);
 
@@ -177,14 +184,14 @@ public class MainActivity extends AppCompatActivity
     if (resultCode == RESULT_OK) {
       int removed = data.getIntExtra(EXTRA_DEV_REMOVED, -1);
       if (removed >= 0) {
-        NetworkTask task = taskMap.get(removed);
+        ResponseTask task = taskMap.get(removed);
         if (task != null) task.cancel(true);
         updateAdapter(devices, deviceStorageUtils.getDevices());
       }
 
       int changed = data.getIntExtra(EXTRA_DEV_CHANGED, -1);
       if (changed >= 0) {
-        NetworkTask task = taskMap.get(changed);
+        ResponseTask task = taskMap.get(changed);
         if (task != null) task.cancel(true);
         updateAdapter(devices, deviceStorageUtils.getDevices());
         pingStatus(changed);
@@ -277,7 +284,7 @@ public class MainActivity extends AppCompatActivity
    * @param id the id of the device.
    */
   public void createStatusTask(int id) {
-    NetworkTask task = new NetworkTask((NetworkCallback) context, id);
+    ResponseTask task = new ResponseTask((NetworkCallback) context, id);
     SmartDevice device = devices.get(id);
     task.executeOnExecutor(
         AsyncTask.THREAD_POOL_EXECUTOR, device.getCommand(device.getPowerStatus()));

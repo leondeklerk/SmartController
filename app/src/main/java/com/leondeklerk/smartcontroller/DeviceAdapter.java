@@ -74,12 +74,21 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
           }
         });
 
+    binding.deviceColor.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        Intent intent = new Intent(context, DeviceColorActivity.class);
+        intent.putExtra(DeviceColorActivity.EXTRA_SELECTED_DEV, position);
+        context.startActivity(intent);
+      }
+    });
+
     binding.devicePower.setOnCheckedChangeListener(
         new OnCheckedChangeListener() {
           @Override
           public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if (buttonView.isPressed()) {
-              NetworkTask task = new NetworkTask((NetworkCallback) context, position);
+              ResponseTask task = new ResponseTask((NetworkCallback) context, position);
               task.executeOnExecutor(
                   AsyncTask.THREAD_POOL_EXECUTOR, device.getCommand(device.turnOn(isChecked)));
             }

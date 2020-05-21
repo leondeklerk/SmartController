@@ -15,6 +15,7 @@ public class DeviceData extends BaseObservable {
   @Getter private boolean isProtected;
   @Getter @Setter private String status;
   @Getter @Setter private boolean enabled;
+  @Getter private String type;
 
   @Getter
   @Setter
@@ -26,13 +27,20 @@ public class DeviceData extends BaseObservable {
   private String username;
 
   public DeviceData(
-      int id, String name, String ip, boolean isProtected, String status, boolean enabled) {
+      int id,
+      String name,
+      String ip,
+      boolean isProtected,
+      String status,
+      boolean enabled,
+      String type) {
     this.id = id;
     this.name = name;
     this.ip = ip;
     this.isProtected = isProtected;
     this.status = status;
     this.enabled = enabled;
+    this.type = type;
   }
 
   @Override
@@ -44,14 +52,14 @@ public class DeviceData extends BaseObservable {
       return false;
     }
     DeviceData that = (DeviceData) o;
-    return id == that.id &&
-        isProtected == that.isProtected &&
-        enabled == that.enabled &&
-        Objects.equals(ip, that.ip) &&
-        Objects.equals(name, that.name) &&
-        Objects.equals(status, that.status) &&
-        Objects.equals(password, that.password) &&
-        Objects.equals(username, that.username);
+    return id == that.id
+        && isProtected == that.isProtected
+        && enabled == that.enabled
+        && Objects.equals(ip, that.ip)
+        && Objects.equals(name, that.name)
+        && Objects.equals(status, that.status)
+        && Objects.equals(password, that.password)
+        && Objects.equals(username, that.username);
   }
 
   public DeviceData setProtected(boolean isProtected) {

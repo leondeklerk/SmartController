@@ -1,6 +1,5 @@
 package com.leondeklerk.smartcontroller;
 
-import android.os.AsyncTask;
 import com.leondeklerk.smartcontroller.data.Response;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -8,12 +7,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import lombok.Getter;
 
-public class NetworkTask extends AsyncTask<String, Integer, Response> {
+public class ResponseTask extends CommandTask {
   private NetworkCallback callback;
-  @Getter
-  private int deviceNum;
+  @Getter private int deviceNum;
 
-  NetworkTask(NetworkCallback callback, int device) {
+  ResponseTask(NetworkCallback callback, int device) {
     super();
     this.deviceNum = device;
     this.callback = callback;

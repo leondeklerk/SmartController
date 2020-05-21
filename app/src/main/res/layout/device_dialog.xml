@@ -4,6 +4,33 @@
   android:layout_width="match_parent"
   android:layout_height="match_parent">
 
+  <com.google.android.material.button.MaterialButtonToggleGroup
+    android:id="@+id/newType"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="16dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    app:selectionRequired="true"
+    app:singleSelection="true"
+    app:checkedButton="@id/typeSmart"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+    <Button
+      android:id="@+id/typeSmart"
+      style="?attr/materialButtonOutlinedStyle"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/add_label_type_def" />
+    <Button
+      android:id="@+id/typeController"
+      style="?attr/materialButtonOutlinedStyle"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/add_label_type_rgb" />
+  </com.google.android.material.button.MaterialButtonToggleGroup>
+
   <com.google.android.material.switchmaterial.SwitchMaterial
     android:id="@+id/switch_credentials"
     android:layout_width="wrap_content"
@@ -101,7 +128,7 @@
     app:helperTextEnabled="true"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    app:layout_constraintTop_toBottomOf="@id/newType">
 
     <com.google.android.material.textfield.TextInputEditText
       android:layout_width="match_parent"
