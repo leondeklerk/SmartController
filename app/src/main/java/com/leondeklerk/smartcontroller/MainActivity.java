@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.DiffUtil.DiffResult;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 import com.leondeklerk.smartcontroller.data.DeviceData;
@@ -34,7 +35,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
-    implements NetworkCallback, View.OnClickListener {
+    implements NetworkCallback, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
   public static final String EXTRA_DEV_REMOVED = "com.leondeklerk.smartcontroller.DEV_REMOVED";
   public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity
   ArrayList<SmartDevice> devices;
   AlertDialog addDeviceDialog;
   SharedPreferences preferences;
+  SwipeRefreshLayout refreshLayout;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,10 @@ public class MainActivity extends AppCompatActivity
 
     deviceAdapter = new DeviceAdapter(devices, this);
     recyclerView.setAdapter(deviceAdapter);
+
+    // Set the refresh layout
+    refreshLayout = binding.deviceListRefresh;
+    refreshLayout.setOnRefreshListener(this);
 
     // Ping the devices for their status
     pingStatus(-1);
@@ -133,6 +139,12 @@ public class MainActivity extends AppCompatActivity
       }
       Log.d("Response", response.getResponse());
     }
+
+    // If this was the last task, turn the refreshing animation off
+    if(taskMap.isEmpty()) {
+      refreshLayout.setRefreshing(false);
+    }
+
     // Update the RecyclerView
     deviceAdapter.notifyItemChanged(deviceNum);
   }
@@ -284,6 +296,8 @@ public class MainActivity extends AppCompatActivity
    * @param id the id of the device.
    */
   public void createStatusTask(int id) {
+    refreshLayout.setRefreshing(true);
+
     ResponseTask task = new ResponseTask((NetworkCallback) context, id);
     SmartDevice device = devices.get(id);
     task.executeOnExecutor(
@@ -307,5 +321,11 @@ public class MainActivity extends AppCompatActivity
     devices.addAll(newList);
 
     diff.dispatchUpdatesTo(deviceAdapter);
+  }
+
+  @Override
+  public void onRefresh() {
+    // Ping all devices
+    pingStatus(-1);
   }
 }
