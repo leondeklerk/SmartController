@@ -5,8 +5,10 @@
   <string name="device_status">status -&#160;</string>
   <string name="device_ip">ip -&#160;</string>
   <string name="device_edit">Edit</string>
-  <string name="status_unknown">unknown</string>
-  <string name="device_unknown">status - unknown</string>
+  <string name="status_unknown">unreachable</string>
+  <string name="status_on">on</string>
+  <string name="status_off">off</string>
+  <string name="device_unknown">status - unreachable</string>
   <string name="device_color">Color</string>
 
   <!-- Device creation dialog -->

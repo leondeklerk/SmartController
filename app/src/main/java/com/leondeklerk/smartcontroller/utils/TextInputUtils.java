@@ -1,5 +1,6 @@
 package com.leondeklerk.smartcontroller.utils;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -75,7 +76,7 @@ public class TextInputUtils {
    * @return a new SmartDevice based on the read data.
    */
   @SuppressWarnings("ConstantConditions")
-  public static SmartDevice readDevice(
+  public static SmartDevice readDevice(Context context,
       String type, ArrayList<TextInputLayout> layouts, boolean isProtected, int nextId) {
     ArrayList<String> inputs = new ArrayList<>();
 
@@ -87,7 +88,14 @@ public class TextInputUtils {
 
     // Create a new device
     DeviceData data =
-        new DeviceData(nextId, inputs.get(0), inputs.get(1), isProtected, "UNKNOWN", false, type);
+        new DeviceData(
+            nextId,
+            inputs.get(0),
+            inputs.get(1),
+            isProtected,
+            context.getString(R.string.status_unknown),
+            false,
+            type);
 
     // If it requires credentials, also add these
     if (isProtected) {
