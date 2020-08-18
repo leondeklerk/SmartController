@@ -57,8 +57,8 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:paddingTop="-4dp"
-        android:checked='@{(device.data.status != null) &amp;&amp; device.data.status.equals("ON")? true : false}'
-        android:enabled='@{(device.data.status == null) || device.data.status.equals("UNKNOWN") ? false : true}'
+        android:checked='@{(device.data.status != null) &amp;&amp; device.data.status.equals(@string/status_on)? true : false}'
+        android:enabled='@{(device.data.status == null) || device.data.status.equals(@string/status_unknown) ? false : true}'
         app:layout_constraintBottom_toTopOf="@+id/device_edit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -104,8 +104,8 @@
         android:layout_width="10dp"
         android:layout_height="10dp"
         android:layout_gravity="end|center_vertical"
-        android:visibility='@{device.data.status == null|| device.data.status.equals("UKNOWN") ? 8 : 0}'
-        app:fillColor='@{device.data.status != null &amp;&amp; device.data.status.equals("ON") ? @color/status_on : (device.data.status.equals("UNKNOWN") ? 0 : @color/status_off)}'
+        android:visibility='@{device.data.status == null|| device.data.status.equals(@string/status_unknown) ? 8 : 0}'
+        app:fillColor='@{device.data.status != null &amp;&amp; device.data.status.equals(@string/status_on) ? @color/status_on : (device.data.status.equals(@string/status_unknown) ? 0 : @color/status_off)}'
         app:layout_constraintBottom_toBottomOf="@+id/device_status"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintTop_toTopOf="@+id/device_status" />

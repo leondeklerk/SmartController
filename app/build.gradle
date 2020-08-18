@@ -46,6 +46,7 @@ dependencies {
     //noinspection AnnotationProcessorOnCompilePath
     compileOnly "org.projectlombok:lombok:1.18.12"
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 }
 repositories {
     mavenCentral()

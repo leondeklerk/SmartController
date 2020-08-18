@@ -3,7 +3,9 @@ package com.leondeklerk.smartcontroller;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,6 +19,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.DiffUtil.DiffResult;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 import com.leondeklerk.smartcontroller.data.DeviceData;
@@ -34,10 +37,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity
-    implements NetworkCallback, View.OnClickListener {
+    implements NetworkCallback, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
-  public static final String EXTRA_DEV_REMOVED = "com.leondeklerk.smartcontroller.DEV_REMOVED";
-  public static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
+  static final String EXTRA_DEV_REMOVED = "com.leondeklerk.smartcontroller.DEV_REMOVED";
+  static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
+  public static boolean NET_CHANGED = false;
+  private boolean APP_ACTIVE = true;
   private DeviceDialogBinding dialogBinding;
   private Map<Integer, ResponseTask> taskMap;
   private DeviceStorageUtils deviceStorageUtils;
@@ -47,10 +52,17 @@ public class MainActivity extends AppCompatActivity
   ArrayList<SmartDevice> devices;
   AlertDialog addDeviceDialog;
   SharedPreferences preferences;
+  SwipeRefreshLayout refreshLayout;
+  NetworkReceiver receiver;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    // Register the NetworkReceiver
+    IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+    receiver = new NetworkReceiver();
+    this.registerReceiver(receiver, filter);
 
     // Bind the MainActivity layout file
     com.leondeklerk.smartcontroller.databinding.ActivityMainBinding binding =
@@ -76,6 +88,10 @@ public class MainActivity extends AppCompatActivity
     deviceAdapter = new DeviceAdapter(devices, this);
     recyclerView.setAdapter(deviceAdapter);
 
+    // Set the refresh layout
+    refreshLayout = binding.deviceListRefresh;
+    refreshLayout.setOnRefreshListener(this);
+
     // Ping the devices for their status
     pingStatus(-1);
 
@@ -90,6 +106,34 @@ public class MainActivity extends AppCompatActivity
             button.setOnClickListener((View.OnClickListener) context);
           }
         });
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    if (receiver != null) {
+      unregisterReceiver(receiver);
+    }
+  }
+
+  @Override
+  public void onResume() {
+    super.onResume();
+    // Flag as in the foreground
+    APP_ACTIVE = true;
+
+    // If network changed while on pause, ping devices
+    if (NET_CHANGED) {
+      NET_CHANGED = false;
+      pingStatus(-1);
+    }
+  }
+
+  @Override
+  public void onPause() {
+    super.onPause();
+    // Flag the activity as no longer in the foreground
+    APP_ACTIVE = false;
   }
 
   @Override
@@ -112,7 +156,7 @@ public class MainActivity extends AppCompatActivity
     if (response.getException() != null) {
       // If there was an error, log it and set status to UNKNOWN
       Log.d("Network error", response.getException().toString());
-      device.setStatus("UNKNOWN");
+      device.setStatus(getString(R.string.status_unknown));
     } else {
       // If there was a response, retrieve the response
       String statusString;
@@ -120,19 +164,25 @@ public class MainActivity extends AppCompatActivity
         JSONObject obj = new JSONObject(response.getResponse());
         statusString = obj.getString("POWER");
       } catch (JSONException e) {
-        device.setStatus("UNKNOWN");
+        device.setStatus(getString(R.string.status_unknown));
         e.printStackTrace();
         Log.d("JSON Response", response.getResponse());
         return;
       }
       // Set the values according to the response
       if (statusString.equals("ON")) {
-        device.setStatus("ON");
+        device.setStatus(getString(R.string.status_on));
       } else {
-        device.setStatus("OFF");
+        device.setStatus(getString(R.string.status_off));
       }
       Log.d("Response", response.getResponse());
     }
+
+    // If this was the last task, turn the refreshing animation off
+    if (taskMap.isEmpty()) {
+      refreshLayout.setRefreshing(false);
+    }
+
     // Update the RecyclerView
     deviceAdapter.notifyItemChanged(deviceNum);
   }
@@ -163,7 +213,7 @@ public class MainActivity extends AppCompatActivity
       }
 
       // Create the new device and add it
-      SmartDevice device = TextInputUtils.readDevice(type, layouts, isProtected, devices.size());
+      SmartDevice device = TextInputUtils.readDevice(context, type, layouts, isProtected, devices.size());
       ArrayList<SmartDevice> newList = new ArrayList<>(devices);
       newList.add(device);
 
@@ -197,6 +247,12 @@ public class MainActivity extends AppCompatActivity
         pingStatus(changed);
       }
     }
+  }
+
+  @Override
+  public void onRefresh() {
+    // Ping all devices
+    pingStatus(-1);
   }
 
   /**
@@ -284,6 +340,8 @@ public class MainActivity extends AppCompatActivity
    * @param id the id of the device.
    */
   public void createStatusTask(int id) {
+    refreshLayout.setRefreshing(true);
+
     ResponseTask task = new ResponseTask((NetworkCallback) context, id);
     SmartDevice device = devices.get(id);
     task.executeOnExecutor(
@@ -307,5 +365,17 @@ public class MainActivity extends AppCompatActivity
     devices.addAll(newList);
 
     diff.dispatchUpdatesTo(deviceAdapter);
+  }
+
+  /**
+   * Update the cards because of a network change, but only if the application is currently in the
+   * foreground. If the application is not in the foreground, onPause and onResume will handle the
+   * change.
+   */
+  public void updateNetworkChange() {
+    if (APP_ACTIVE) {
+      NET_CHANGED = false;
+      pingStatus(-1);
+    }
   }
 }
