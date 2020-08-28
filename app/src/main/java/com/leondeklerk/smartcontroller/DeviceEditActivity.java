@@ -52,7 +52,6 @@ public class DeviceEditActivity extends FragmentActivity {
     @NotNull
     @Override
     public Fragment createFragment(int position) {
-      // TODO pass device data along
       Fragment fragment = new DeviceEditFragment();
       Bundle args = new Bundle();
       args.putInt(DeviceEditFragment.ARG_FRAG_NUM, position);

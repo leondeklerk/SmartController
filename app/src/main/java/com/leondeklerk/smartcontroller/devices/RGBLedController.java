@@ -1,6 +1,7 @@
 package com.leondeklerk.smartcontroller.devices;
 
 import android.annotation.SuppressLint;
+import com.leondeklerk.smartcontroller.data.Command;
 import com.leondeklerk.smartcontroller.data.DeviceData;
 
 public class RGBLedController extends SmartDevice {
@@ -8,13 +9,17 @@ public class RGBLedController extends SmartDevice {
     super(data);
   }
 
-  @SuppressLint("DefaultLocale")
-  public String brightness(int brightness) {
-    return String.format("dimmer %d", brightness);
+  /**
+   * Get the command for checking the status.
+   *
+   * @return the power status Command
+   */
+  public Command getColor() {
+    return new Command(super.getTopic("Color"), "?");
   }
 
   @SuppressLint("DefaultLocale")
-  public String color(int r, int g, int b) {
-    return String.format("color %d,%d,%d", r, g, b);
+  public Command setColor(int red, int green, int blue) {
+    return new Command(super.getTopic("Color2"), String.format("%d,%d,%d", red, green, blue));
   }
 }

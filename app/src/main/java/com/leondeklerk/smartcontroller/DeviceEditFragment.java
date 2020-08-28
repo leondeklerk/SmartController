@@ -59,7 +59,7 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
     }
     SharedPreferences preferences =
         context.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
-    deviceStorageUtils = new DeviceStorageUtils(preferences);
+    deviceStorageUtils = new DeviceStorageUtils(preferences, context);
 
     devices = deviceStorageUtils.getDevices();
     device = devices.get(devNum);
@@ -144,8 +144,6 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
         dialog.dismiss();
         break;
       case R.id.edit_update:
-        TextInputUtils.checkIp(binding.editIp);
-
         if (!TextInputUtils.hasErrors(fragList)) {
           // Check if all requirements regarding the passwords are met
           if (checkPwdRequirements()) {
@@ -219,11 +217,11 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
 
     // Add all input layouts to a list
     fragList.add(binding.editName);
-    fragList.add(binding.editIp);
+    fragList.add(binding.editTopic);
 
     // Set the error listeners
     TextInputUtils.setListener(binding.editName, TextInputUtils.DEFAULT_TYPE);
-    TextInputUtils.setListener(binding.editIp, TextInputUtils.IP_TYPE);
+    TextInputUtils.setListener(binding.editTopic, TextInputUtils.DEFAULT_TYPE);
 
     // If credentials are enabled, add them
     if (hasCredentials) {
@@ -261,7 +259,7 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
     device
         .getData()
         .setName(TextInputUtils.getText(binding.editName))
-        .setIp(TextInputUtils.getText(binding.editIp))
+        .setTopic(TextInputUtils.getText(binding.editTopic))
         .setProtected(binding.switchCredentials.isChecked())
         .setUsername(TextInputUtils.getText(binding.editUsername));
     setResult(false);

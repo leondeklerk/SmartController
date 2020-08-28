@@ -1,9 +1,11 @@
 package com.leondeklerk.smartcontroller.utils;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.leondeklerk.smartcontroller.R;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -11,14 +13,16 @@ import java.util.ArrayList;
 /** A class to handle the storage and retrieval of devices in the applications SharedPreferences. */
 public class DeviceStorageUtils {
   private SharedPreferences preferences;
+  private Context context;
 
   /**
    * Basic constructor for the DeviceStorageUtils class.
    *
    * @param preferences the preferences to store and retrieve in/from.
    */
-  public DeviceStorageUtils(SharedPreferences preferences) {
+  public DeviceStorageUtils(SharedPreferences preferences, Context context) {
     this.preferences = preferences;
+    this.context = context;
   }
 
   /**
@@ -46,6 +50,11 @@ public class DeviceStorageUtils {
    * @param devices the list of devices to store.
    */
   public void storeDevices(ArrayList<SmartDevice> devices) {
+    // Set the status to unknown (prevent the status from being stored)
+    for(SmartDevice device : devices) {
+      device.getData().setStatus(context.getString(R.string.status_unknown));
+    }
+
     Editor prefsEditor = preferences.edit();
     Gson gson = new Gson();
     // Convert the object to a String

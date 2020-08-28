@@ -14,9 +14,8 @@
   <!-- Device creation dialog -->
   <string name="add_device_title">Add new device</string>
   <string name="add_label_name">Device name</string>
-  <string name="add_label_ip">Device ip</string>
+  <string name="add_label_topic">Device MQTT topic</string>
   <string name="add_switch_text">Requires credentials</string>
-  <string name="add_ip_helper">Eg: 255.255.255.255</string>
   <string name="add_label_username">Username</string>
   <string name="add_label_password">Password</string>
   <string name="add_button_confirm">add</string>
@@ -33,6 +32,7 @@
   <string name="edit_update">Update</string>
   <string name="edit_label_name">Name</string>
   <string name="edit_label_ip">IP</string>
+  <string name="edit_label_topic">Topic</string>
   <string name="edit_label_username">Username</string>
   <string name="edit_password">Edit password</string>
   <string name="edit_password_required">Password required</string>
@@ -53,4 +53,19 @@
   <!-- template shizzle-->
   <string name="lorem_ipsum">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</string>
 
+  <!-- Menu titles  -->
+  <string name="title_settings">Settings</string>
+  <string name="title_help">Help</string>
+
+  <!-- Settings Activity -->
+  <string name="title_activity_settings">SettingsActivity</string>
+
+  <!-- Preference Titles -->
+  <string name="mqtt_header">MQTT</string>
+
+  <!-- MQTT Preferences -->
+  <string name="mqtt_ip">Server IP/domain</string>
+  <string name="mqtt_port">Server port</string>
+  <string name="mqtt_password">Server password</string>
+  <string name="mqtt_username">Server username</string>
 </resources>

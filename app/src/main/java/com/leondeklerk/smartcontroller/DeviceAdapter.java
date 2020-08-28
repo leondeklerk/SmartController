@@ -2,7 +2,6 @@ package com.leondeklerk.smartcontroller;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -10,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.gson.Gson;
 import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
 import com.leondeklerk.smartcontroller.databinding.ComponentCardsBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
@@ -74,23 +74,23 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
           }
         });
 
-    binding.deviceColor.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Intent intent = new Intent(context, DeviceColorActivity.class);
-        intent.putExtra(DeviceColorActivity.EXTRA_SELECTED_DEV, position);
-        context.startActivity(intent);
-      }
-    });
+    binding.deviceColor.setOnClickListener(
+        new OnClickListener() {
+          @Override
+          public void onClick(View v) {
+            Intent intent = new Intent(context, DeviceColorActivity.class);
+            intent.putExtra(DeviceColorActivity.EXTRA_SELECTED_DEV, position);
+            context.startActivity(intent);
+          }
+        });
 
     binding.devicePower.setOnCheckedChangeListener(
         new OnCheckedChangeListener() {
           @Override
           public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if (buttonView.isPressed()) {
-              ResponseTask task = new ResponseTask((NetworkCallback) context, position);
-              task.executeOnExecutor(
-                  AsyncTask.THREAD_POOL_EXECUTOR, device.getCommand(device.turnOn(isChecked)));
+              MqttClient client = ((MainActivity) context).getMqttClient();
+              client.publish(device.setPower(isChecked));
             }
           }
         });

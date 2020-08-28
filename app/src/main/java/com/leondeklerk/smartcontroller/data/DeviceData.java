@@ -1,5 +1,6 @@
 package com.leondeklerk.smartcontroller.data;
 
+import android.util.Log;
 import androidx.databinding.BaseObservable;
 import androidx.databinding.library.baseAdapters.BR;
 import java.util.Objects;
@@ -10,12 +11,12 @@ import lombok.experimental.Accessors;
 public class DeviceData extends BaseObservable {
 
   @Getter private int id;
-  @Getter private String ip;
   @Getter private String name;
   @Getter private boolean isProtected;
-  @Getter @Setter private String status;
+  @Getter private String status;
   @Getter @Setter private boolean enabled;
   @Getter private String type;
+  @Getter private String topic;
 
   @Getter
   @Setter
@@ -29,18 +30,18 @@ public class DeviceData extends BaseObservable {
   public DeviceData(
       int id,
       String name,
-      String ip,
       boolean isProtected,
       String status,
       boolean enabled,
-      String type) {
+      String type,
+      String topic) {
     this.id = id;
     this.name = name;
-    this.ip = ip;
     this.isProtected = isProtected;
     this.status = status;
     this.enabled = enabled;
     this.type = type;
+    this.topic = topic;
   }
 
   @Override
@@ -55,7 +56,7 @@ public class DeviceData extends BaseObservable {
     return id == that.id
         && isProtected == that.isProtected
         && enabled == that.enabled
-        && Objects.equals(ip, that.ip)
+        && Objects.equals(topic, that.topic)
         && Objects.equals(name, that.name)
         && Objects.equals(status, that.status)
         && Objects.equals(password, that.password)
@@ -64,12 +65,6 @@ public class DeviceData extends BaseObservable {
 
   public DeviceData setProtected(boolean isProtected) {
     this.isProtected = isProtected;
-    notifyPropertyChanged(BR._all);
-    return this;
-  }
-
-  public DeviceData setIp(String ip) {
-    this.ip = ip;
     notifyPropertyChanged(BR._all);
     return this;
   }
@@ -84,5 +79,17 @@ public class DeviceData extends BaseObservable {
     this.username = username;
     notifyPropertyChanged(BR._all);
     return this;
+  }
+
+  public DeviceData setTopic(String topic) {
+    this.topic = topic;
+    notifyPropertyChanged(BR._all);
+    return this;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+    notifyPropertyChanged(BR._all);
+    Log.d("mqtt", status);
   }
 }

@@ -1,5 +1,6 @@
 package com.leondeklerk.smartcontroller.devices;
 
+import com.leondeklerk.smartcontroller.data.Command;
 import com.leondeklerk.smartcontroller.data.DeviceData;
 import lombok.Getter;
 
@@ -34,27 +35,22 @@ public class SmartDevice {
   }
 
   /**
-   * Get a command to execute based on the data of the device and the command.
+   * Get a topic to publish to based on the data of the device and the type of command.
    *
    * @param command the command that the device needs to execute.
-   * @return the command formatted with the device data.
+   * @return the topic formatted with the device data.
    */
-  public String getCommand(String command) {
-    if (data.isProtected()) {
-      return String.format(
-          "http://%s/cm?&user=%s&password=%s&cmnd=%s",
-          data.getIp(), data.getUsername(), data.getPassword(), command);
-    }
-    return String.format("http://%s/cm?&cmnd=%s", data.getIp(), command);
+  String getTopic(String command) {
+    return "cmnd/" + data.getTopic() + "/" + command;
   }
 
   /**
    * Get the command for checking the status.
    *
-   * @return the power status String command
+   * @return the power status Command
    */
-  public String getPowerStatus() {
-    return "power";
+  public Command getPowerStatus() {
+    return new Command(getTopic("POWER"), "?");
   }
 
   /**
@@ -63,8 +59,8 @@ public class SmartDevice {
    * @param on bool whether or not the power the device on or off
    * @return the String command to turn the device on or off.
    */
-  public String turnOn(boolean on) {
-    return on ? "power on" : "power off";
+  public Command setPower(boolean on) {
+    return new Command(getTopic("POWER"), on ? "ON" : "OFF");
   }
 
   /**
@@ -79,11 +75,11 @@ public class SmartDevice {
         new DeviceData(
                 otherData.getId(),
                 otherData.getName(),
-                otherData.getIp(),
                 otherData.isProtected(),
                 otherData.getStatus(),
                 otherData.isEnabled(),
-                otherData.getType())
+                otherData.getType(),
+                otherData.getTopic())
             .setPassword(otherData.getPassword())
             .setUsername(otherData.getUsername()));
   }

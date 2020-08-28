@@ -1,0 +1,25 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <PreferenceCategory app:title="@string/mqtt_header">
+
+    <EditTextPreference
+      app:key="mqtt_ip"
+      app:title="@string/mqtt_ip"
+      app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+      app:key="mqtt_port"
+      app:title="@string/mqtt_port"
+      app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+      app:key="mqtt_username"
+      app:title="@string/mqtt_username"
+      app:useSimpleSummaryProvider="true" />
+
+    <EditTextPreference
+      app:key="mqtt_password"
+      app:title="@string/mqtt_password"
+      app:useSimpleSummaryProvider="true" />
+  </PreferenceCategory>
+</PreferenceScreen>

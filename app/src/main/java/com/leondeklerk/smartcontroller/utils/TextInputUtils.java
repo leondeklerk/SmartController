@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.EditText;
+import android.widget.Toast;
 import com.google.android.material.textfield.TextInputLayout;
 import com.leondeklerk.smartcontroller.R;
 import com.leondeklerk.smartcontroller.data.DeviceData;
@@ -22,8 +23,6 @@ import java.util.ArrayList;
 public class TextInputUtils {
   public static final String DEV_TYPE_DEF = "DEFAULT_TYPE";
   public static final String DEV_TYPE_RGB = "RGB_CONTROLLER_TYPE";
-  // An input type that is an IPV4 ip
-  public static final String IP_TYPE = "IP_TYPE";
   // An input type that is a field with a max length
   public static final String DEFAULT_TYPE = "DEFAULT_TYPE";
 
@@ -86,16 +85,17 @@ public class TextInputUtils {
       inputs.add(editText.getText().toString());
     }
 
+    Toast.makeText(context, inputs.get(1), Toast.LENGTH_SHORT).show();
     // Create a new device
     DeviceData data =
         new DeviceData(
             nextId,
             inputs.get(0),
-            inputs.get(1),
             isProtected,
             context.getString(R.string.status_unknown),
             false,
-            type);
+            type,
+            inputs.get(1));
 
     // If it requires credentials, also add these
     if (isProtected) {
@@ -149,24 +149,6 @@ public class TextInputUtils {
   }
 
   /**
-   * Check if an IP input field is of the correct length, meaning it consist out of 4 parts of
-   * digits. Will set an error if this requirement is not matched.
-   *
-   * @param layout the layout to check.
-   */
-  @SuppressWarnings("ConstantConditions")
-  public static void checkIp(TextInputLayout layout) {
-    String text = layout.getEditText().getText().toString();
-    Resources resources = layout.getResources();
-    // If the IP is not in the 255.255.255.255 format set an error
-    if (text.split("\\.").length != 4) {
-      layout.setError(resources.getString(R.string.error_input_invalid_ip));
-    } else {
-      layout.setError(null);
-    }
-  }
-
-  /**
    * Retrieve a string from a TextInputLayout.
    *
    * @param layout the layout to retrieve the text from.
@@ -181,41 +163,37 @@ public class TextInputUtils {
    * Set the correct filters and error listeners to handle errors on the user input.
    *
    * @param layout the layout to set the filter on.
-   * @param type the type of input field, either IP_TYPE or DEFAULT_TYPE.
+   * @param type the type of input field, only option now is DEFAULT_TYPE.
    */
   @SuppressWarnings("ConstantConditions")
   public static void setListener(final TextInputLayout layout, String type) {
-    switch (type) {
-      case IP_TYPE:
-        // If it is an IP type set a filter on the EditText
-        layout.getEditText().setFilters(new InputFilter[] {new IpInputFilter()});
-        break;
-      case DEFAULT_TYPE:
-        // The default type needs a error handler for surpassing the maximum length.
-        layout
-            .getEditText()
-            .addTextChangedListener(
-                new TextWatcher() {
-                  @Override
-                  public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+    if (DEFAULT_TYPE
+        .equals(type)) {// The default type needs a error handler for surpassing the maximum length.
+      layout
+          .getEditText()
+          .addTextChangedListener(
+              new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-                  @Override
-                  public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
 
-                  @Override
-                  public void afterTextChanged(Editable s) {
-                    // If the length is to great, write an error
-                    if (s.length() > layout.getCounterMaxLength()) {
-                      Resources resources = layout.getResources();
-                      layout.setError(resources.getString(R.string.error_input_length));
-                    } else {
-                      layout.setError(null);
-                    }
+                @Override
+                public void afterTextChanged(Editable s) {
+                  // If the length is to great, write an error
+                  if (s.length() > layout.getCounterMaxLength()) {
+                    Resources resources = layout.getResources();
+                    layout.setError(resources.getString(R.string.error_input_length));
+                  } else {
+                    layout.setError(null);
                   }
-                });
-        break;
-      default:
-        Log.d("TextInputLayout type", type);
+                }
+              });
+    } else {
+      Log.d("TextInputLayout type", type);
     }
   }
 }
