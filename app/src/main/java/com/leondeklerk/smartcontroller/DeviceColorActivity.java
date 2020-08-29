@@ -56,7 +56,6 @@ public class DeviceColorActivity extends FragmentActivity
     client.registerHandler("DeviceColorActivity", this);
     client.setHandler("DeviceColorActivity");
 
-
     SharedPreferences preferences =
         this.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
     DeviceStorageUtils deviceStorageUtils = new DeviceStorageUtils(preferences, this);

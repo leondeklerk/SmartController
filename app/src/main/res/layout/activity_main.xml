@@ -6,23 +6,6 @@
   android:layout_height="match_parent"
   android:fitsSystemWindows="true">
 
-  <com.google.android.material.appbar.AppBarLayout
-    android:id="@+id/appbarlayout"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:fitsSystemWindows="true"
-    app:liftOnScroll="true">
-
-    <com.google.android.material.appbar.MaterialToolbar
-      android:id="@+id/toolbar"
-      style="@style/Widget.MaterialComponents.Toolbar.Surface"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:elevation="4dp"
-      app:menu="@menu/top_app_bar"
-      app:title="@string/app_name" />
-  </com.google.android.material.appbar.AppBarLayout>
-
   <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -55,4 +38,21 @@
       app:layout_constraintEnd_toEndOf="parent"
       app:srcCompat="@drawable/ic_add_on_secondary_24dp" />
   </androidx.constraintlayout.widget.ConstraintLayout>
+
+  <com.google.android.material.appbar.AppBarLayout
+    android:id="@+id/appbarlayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fitsSystemWindows="true"
+    app:liftOnScroll="true">
+
+    <com.google.android.material.appbar.MaterialToolbar
+      android:id="@+id/toolbar"
+      style="@style/Widget.MaterialComponents.Toolbar.Surface"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:elevation="4dp"
+      app:menu="@menu/top_app_bar"
+      app:title="@string/app_name" />
+  </com.google.android.material.appbar.AppBarLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

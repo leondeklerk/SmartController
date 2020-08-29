@@ -74,11 +74,7 @@ public class TextInputUtils {
    */
   @SuppressWarnings("ConstantConditions")
   public static SmartDevice readDevice(
-      Context context,
-      String type,
-      ArrayList<TextInputLayout> layouts,
-      boolean isProtected,
-      int nextId) {
+      Context context, String type, ArrayList<TextInputLayout> layouts, int nextId) {
     ArrayList<String> inputs = new ArrayList<>();
 
     // Read each input and add it to the list of inputs
@@ -92,61 +88,16 @@ public class TextInputUtils {
         new DeviceData(
             nextId,
             inputs.get(0),
-            isProtected,
             context.getString(R.string.status_unknown),
             false,
             type,
             inputs.get(1));
 
-    // If it requires credentials, also add these
-    if (isProtected) {
-      data.setUsername(inputs.get(2)).setPassword(inputs.get(3));
-    }
     // Return the type of device
     if (type.equals(DEV_TYPE_RGB)) {
       return new RGBLedController(data);
     }
     return new SmartDevice(data);
-  }
-
-  /**
-   * Check if two TextInputLayouts have the same input text, which is used for example to check if a
-   * password is correctly confirmed.
-   *
-   * @param first the first layout to compare (the baseline)
-   * @param second the second layout to compare.
-   */
-  public static void checkEqual(TextInputLayout first, TextInputLayout second) {
-    // If they are not equal
-    if (!getText(first).equals(getText(second))) {
-      // Set errors with resource strings
-      Resources resources = first.getResources();
-      first.setError(resources.getString(R.string.update_pwd_no_match));
-      second.setError(resources.getString(R.string.update_pwd_no_match));
-    } else {
-      // Else remove the error
-      first.setError(null);
-      second.setError(null);
-    }
-  }
-
-  /**
-   * Check if a layout correctly matches a reference password. This is used to check if a user can
-   * correctly identify itself.
-   *
-   * @param pwd the layout containing the password.
-   * @param reference the reference password to match.
-   */
-  public static void checkPwd(TextInputLayout pwd, String reference) {
-    // If there is not match
-    if (!getText(pwd).equals(reference)) {
-      Resources resources = pwd.getResources();
-      // Set an error
-      pwd.setError(resources.getString(R.string.update_pwd_wrong));
-    } else {
-      // Remove any errors
-      pwd.setError(null);
-    }
   }
 
   /**

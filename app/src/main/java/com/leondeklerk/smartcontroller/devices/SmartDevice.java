@@ -73,14 +73,11 @@ public class SmartDevice {
     DeviceData otherData = other.getData();
     return new SmartDevice(
         new DeviceData(
-                otherData.getId(),
-                otherData.getName(),
-                otherData.isProtected(),
-                otherData.getStatus(),
-                otherData.isEnabled(),
-                otherData.getType(),
-                otherData.getTopic())
-            .setPassword(otherData.getPassword())
-            .setUsername(otherData.getUsername()));
+            otherData.getId(),
+            otherData.getName(),
+            otherData.getStatus(),
+            otherData.isEnabled(),
+            otherData.getType(),
+            otherData.getTopic()));
   }
 }

@@ -20,9 +20,7 @@ public class NetworkHandler extends NetworkCallback {
   private static int count = 0;
   @Getter @Setter private ConnectionsHandler currentHandler;
 
-  /**
-   * Private constructor.
-   */
+  /** Private constructor. */
   private NetworkHandler() {}
 
   @Override

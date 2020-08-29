@@ -6,11 +6,9 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.view.View;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
-import com.leondeklerk.smartcontroller.databinding.ActivityDeviceColorBinding;
 import com.leondeklerk.smartcontroller.databinding.SettingsActivityBinding;
 
 /**

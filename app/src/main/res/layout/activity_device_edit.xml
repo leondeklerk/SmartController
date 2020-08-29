@@ -4,6 +4,15 @@
   android:layout_width="match_parent"
   android:layout_height="match_parent">
 
+  <androidx.viewpager2.widget.ViewPager2
+    android:id="@+id/pager"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/appbarlayout" />
+
   <com.google.android.material.appbar.AppBarLayout
     android:id="@+id/appbarlayout"
     android:layout_width="match_parent"
@@ -15,20 +24,11 @@
     app:liftOnScroll="true">
 
     <com.google.android.material.appbar.MaterialToolbar
+      android:id="@+id/toolbar"
       style="@style/Widget.MaterialComponents.Toolbar.Surface"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:elevation="4dp"
-      app:navigationIcon="@drawable/ic_close_vd_theme_24px"
-      android:id="@+id/toolbar" />
+      app:navigationIcon="@drawable/ic_close_vd_theme_24px" />
   </com.google.android.material.appbar.AppBarLayout>
-
-  <androidx.viewpager2.widget.ViewPager2
-    android:id="@+id/pager"
-    android:layout_width="0dp"
-    android:layout_height="0dp"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toBottomOf="@+id/appbarlayout" />
 </androidx.constraintlayout.widget.ConstraintLayout>

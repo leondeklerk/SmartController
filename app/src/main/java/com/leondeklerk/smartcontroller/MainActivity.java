@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -156,9 +155,6 @@ public class MainActivity extends AppCompatActivity
       // Cancel all tasks and dismiss the dialog
       addDeviceDialog.dismiss();
 
-      // Check if the credentials part is enabled
-      boolean isProtected = dialogBinding.switchCredentials.isChecked();
-
       // Get the type of SmartDevice
       int typeId = dialogBinding.newType.getCheckedButtonId();
       String type = TextInputUtils.DEV_TYPE_DEF;
@@ -167,8 +163,7 @@ public class MainActivity extends AppCompatActivity
       }
 
       // Create the new device and add it
-      SmartDevice device =
-          TextInputUtils.readDevice(context, type, layouts, isProtected, devices.size());
+      SmartDevice device = TextInputUtils.readDevice(context, type, layouts, devices.size());
       ArrayList<SmartDevice> newList = new ArrayList<>(devices);
       newList.add(device);
 
@@ -309,39 +304,7 @@ public class MainActivity extends AppCompatActivity
     TextInputUtils.setListener(dialogBinding.newName, TextInputUtils.DEFAULT_TYPE);
     TextInputUtils.setListener(dialogBinding.newTopic, TextInputUtils.DEFAULT_TYPE);
 
-    // Add a listener to the switch to enable / disable credentials
-    dialogBinding.switchCredentials.setOnCheckedChangeListener(
-        new CompoundButton.OnCheckedChangeListener() {
-          @Override
-          public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            setCredentialsAvailability(dialogBinding, isChecked);
-          }
-        });
     return dialog;
-  }
-
-  /**
-   * Enable or disable the credential input fields on a device creation Dialog. This also registers
-   * the correct error listeners.
-   *
-   * @param dialogBinding the view binding containing the views of the dialog.
-   * @param enable boolean whether the fields should be enabled or not
-   */
-  public void setCredentialsAvailability(DeviceDialogBinding dialogBinding, boolean enable) {
-    dialogBinding.newUsername.setEnabled(enable);
-    dialogBinding.newPassword.setEnabled(enable);
-
-    // Add the layouts and there error listeners  if they are enabled or remove them if not
-    if (enable) {
-      layouts.add(dialogBinding.newUsername);
-      TextInputUtils.setListener(dialogBinding.newUsername, TextInputUtils.DEFAULT_TYPE);
-
-      layouts.add(dialogBinding.newPassword);
-      TextInputUtils.setListener(dialogBinding.newPassword, TextInputUtils.DEFAULT_TYPE);
-    } else {
-      layouts.remove(dialogBinding.newUsername);
-      layouts.remove(dialogBinding.newPassword);
-    }
   }
 
   /**
