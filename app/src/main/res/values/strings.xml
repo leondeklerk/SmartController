@@ -58,7 +58,7 @@
   <string name="title_help">Help</string>
 
   <!-- Settings Activity -->
-  <string name="title_activity_settings">SettingsActivity</string>
+  <string name="title_activity_settings">Settings</string>
 
   <!-- Preference Titles -->
   <string name="mqtt_header">MQTT</string>

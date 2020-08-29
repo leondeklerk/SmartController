@@ -5,10 +5,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.view.View;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
+import com.leondeklerk.smartcontroller.databinding.ActivityDeviceColorBinding;
+import com.leondeklerk.smartcontroller.databinding.SettingsActivityBinding;
 
 /**
  * The activity that contains all the applications settings. Mainly uses for the MQTT server
@@ -22,15 +25,26 @@ public class SettingsActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.settings_activity);
+
+    // Inflate the view binding.
+    SettingsActivityBinding binding = SettingsActivityBinding.inflate(getLayoutInflater());
+    View view = binding.getRoot();
+    setContentView(view);
+
     getSupportFragmentManager()
         .beginTransaction()
         .replace(R.id.settings, new SettingsFragment())
         .commit();
-    ActionBar actionBar = getSupportActionBar();
-    if (actionBar != null) {
-      actionBar.setDisplayHomeAsUpEnabled(true);
-    }
+
+    // setup the toolbar
+    binding.toolbar.setTitle(getString(R.string.title_activity_settings));
+    binding.toolbar.setNavigationOnClickListener(
+        new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            onBackPressed();
+          }
+        });
 
     PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
         .registerOnSharedPreferenceChangeListener(this);

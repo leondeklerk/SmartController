@@ -1,4 +1,5 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:android="http://schemas.android.com/apk/res/android">
 
   <PreferenceCategory app:title="@string/mqtt_header">
 
@@ -20,6 +21,6 @@
     <EditTextPreference
       app:key="mqtt_password"
       app:title="@string/mqtt_password"
-      app:useSimpleSummaryProvider="true" />
+      app:useSimpleSummaryProvider="true"/>
   </PreferenceCategory>
 </PreferenceScreen>
