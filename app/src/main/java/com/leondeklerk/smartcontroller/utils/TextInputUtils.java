@@ -3,12 +3,10 @@ package com.leondeklerk.smartcontroller.utils;
 import android.content.Context;
 import android.content.res.Resources;
 import android.text.Editable;
-import android.text.InputFilter;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.EditText;
-import android.widget.Toast;
 import com.google.android.material.textfield.TextInputLayout;
 import com.leondeklerk.smartcontroller.R;
 import com.leondeklerk.smartcontroller.data.DeviceData;
@@ -75,8 +73,12 @@ public class TextInputUtils {
    * @return a new SmartDevice based on the read data.
    */
   @SuppressWarnings("ConstantConditions")
-  public static SmartDevice readDevice(Context context,
-      String type, ArrayList<TextInputLayout> layouts, boolean isProtected, int nextId) {
+  public static SmartDevice readDevice(
+      Context context,
+      String type,
+      ArrayList<TextInputLayout> layouts,
+      boolean isProtected,
+      int nextId) {
     ArrayList<String> inputs = new ArrayList<>();
 
     // Read each input and add it to the list of inputs
@@ -85,7 +87,6 @@ public class TextInputUtils {
       inputs.add(editText.getText().toString());
     }
 
-    Toast.makeText(context, inputs.get(1), Toast.LENGTH_SHORT).show();
     // Create a new device
     DeviceData data =
         new DeviceData(
@@ -167,19 +168,17 @@ public class TextInputUtils {
    */
   @SuppressWarnings("ConstantConditions")
   public static void setListener(final TextInputLayout layout, String type) {
-    if (DEFAULT_TYPE
-        .equals(type)) {// The default type needs a error handler for surpassing the maximum length.
+    if (DEFAULT_TYPE.equals(
+        type)) { // The default type needs a error handler for surpassing the maximum length.
       layout
           .getEditText()
           .addTextChangedListener(
               new TextWatcher() {
                 @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                }
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
                 @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                }
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
                 @Override
                 public void afterTextChanged(Editable s) {

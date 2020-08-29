@@ -38,7 +38,7 @@ public class SmartDevice {
    * Get a topic to publish to based on the data of the device and the type of command.
    *
    * @param command the command that the device needs to execute.
-   * @return the topic formatted with the device data.
+   * @return the topic formatted with the device data topic.
    */
   String getTopic(String command) {
     return "cmnd/" + data.getTopic() + "/" + command;
@@ -57,7 +57,7 @@ public class SmartDevice {
    * Get the command to turn the power on or off.
    *
    * @param on bool whether or not the power the device on or off
-   * @return the String command to turn the device on or off.
+   * @return the command to turn the device on or off.
    */
   public Command setPower(boolean on) {
     return new Command(getTopic("POWER"), on ? "ON" : "OFF");

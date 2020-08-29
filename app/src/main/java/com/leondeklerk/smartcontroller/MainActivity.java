@@ -34,22 +34,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Getter;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Main Activity of the application. Contains the basis navigation for the settings and help pages.
+ * Its main layout contains the RecyclerView with all the device cards in it. Providing an up to
+ * date status of all devices, taking network and preference changes into account. Also contains a
+ * FAB and logic to add new devices.
+ */
 public class MainActivity extends AppCompatActivity
     implements View.OnClickListener,
         SwipeRefreshLayout.OnRefreshListener,
-        MqttCallback,
-        IMqttActionListener,
         Toolbar.OnMenuItemClickListener,
-        MqttConnectCallback,
-        onNetworkChangeListener {
+        ConnectionsHandler {
 
   static final String EXTRA_DEV_REMOVED = "com.leondeklerk.smartcontroller.DEV_REMOVED";
   static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
@@ -59,7 +58,7 @@ public class MainActivity extends AppCompatActivity
   private ArrayList<TextInputLayout> layouts;
   private Map<String, Entry> deviceMap;
   @Getter private MqttClient mqttClient;
-  private NetworkHandler handler;
+  private NetworkHandler networkHandler;
   private boolean connected;
   DeviceAdapter deviceAdapter;
   Context context;
@@ -73,8 +72,9 @@ public class MainActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
 
     // Register the Network change handler
-    handler = new NetworkHandler(this);
-    handler.set();
+    networkHandler = NetworkHandler.getHandler();
+    networkHandler.register(this);
+    networkHandler.setCurrentHandler(this);
 
     // Bind the MainActivity layout file
     com.leondeklerk.smartcontroller.databinding.ActivityMainBinding binding =
@@ -85,6 +85,7 @@ public class MainActivity extends AppCompatActivity
     context = this;
     preferences = this.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
 
+    // Get the MQTT client.
     mqttClient = MqttClient.getInstance(this);
 
     deviceStorageUtils = new DeviceStorageUtils(preferences, context);
@@ -128,8 +129,8 @@ public class MainActivity extends AppCompatActivity
     super.onDestroy();
 
     // Unregister the handler
-    if (handler != null) {
-      handler.remove();
+    if (networkHandler != null) {
+      networkHandler.unregister(this);
     }
 
     // Delete the MQTT client
@@ -141,6 +142,10 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onResume() {
     super.onResume();
+    networkHandler.setCurrentHandler(this);
+    if (mqttClient.getCurrentHandler() != this) {
+      mqttClient.setHandler("MainActivity");
+    }
     pingStatus(-1);
   }
 
@@ -199,9 +204,11 @@ public class MainActivity extends AppCompatActivity
           pingStatus(changed);
         }
       }
-    } else {
+    } else if (requestCode == 1) {
+      // If the PreferenceActivity closed normally.
       if (resultCode == RESULT_OK) {
         if (data.getBooleanExtra(EXTRA_PREFS_CHANGED, false)) {
+          // If the preferences changed the MqttClient needs to reconnect to the server.
           connected = false;
           mqttClient = MqttClient.reconnect(this);
         }
@@ -213,6 +220,7 @@ public class MainActivity extends AppCompatActivity
   public boolean onMenuItemClick(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.settings:
+        // Open the settings screen.
         Intent intent = new Intent(context, SettingsActivity.class);
         startActivityForResult(intent, 1);
         return true;
@@ -231,10 +239,7 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void connectionLost(Throwable cause) {}
-
-  @Override
-  public void messageArrived(String topic, MqttMessage message) {
+  public void onMqttMessage(String topic, MqttMessage message) {
     Pair<String, Boolean> parsedTopic = getTopic(topic);
     if (parsedTopic.second) {
       Entry entry = deviceMap.get(parsedTopic.first);
@@ -245,25 +250,19 @@ public class MainActivity extends AppCompatActivity
   }
 
   @Override
-  public void deliveryComplete(IMqttDeliveryToken token) {
-    // Delivered
-  }
+  public void onMqttSubscribe() {
+    // Set connected to true and register the handlers.
+    connected = true;
+    mqttClient.registerHandler("MainActivity", this);
+    mqttClient.setHandler("MainActivity");
 
-  @Override
-  public void onSuccess(IMqttToken asyncActionToken) {
-    this.connected = true;
-    mqttClient.registerCallback("MainActivity", this);
-    mqttClient.setCallback("MainActivity");
+    // Ping all devices for their status
     pingStatus(-1);
   }
 
   @Override
-  public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-    Log.d("Mqtt", "Subscribed fail!");
-  }
-
-  @Override
-  public void onConnection(boolean connected) {
+  public void onMqttConnected(boolean connected) {
+    // If no connection could be made, notify the users.
     if (!connected) {
       Toast.makeText(
               context,
@@ -276,6 +275,7 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onNetworkChange() {
+    // If the network changed. Change all device statuses and try to reconnect the MqttClient.
     resetStatus();
     connected = false;
     mqttClient = MqttClient.reconnect(this);
@@ -445,6 +445,7 @@ public class MainActivity extends AppCompatActivity
     deviceAdapter.notifyItemChanged(entry.getId());
   }
 
+  /** Reset the status of all devices. */
   private void resetStatus() {
     for (SmartDevice device : devices) {
       device.getData().setStatus(getString(R.string.status_unknown));

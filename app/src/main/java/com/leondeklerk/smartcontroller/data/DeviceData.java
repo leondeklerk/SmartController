@@ -1,6 +1,5 @@
 package com.leondeklerk.smartcontroller.data;
 
-import android.util.Log;
 import androidx.databinding.BaseObservable;
 import androidx.databinding.library.baseAdapters.BR;
 import java.util.Objects;
@@ -8,12 +7,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+/**
+ * A class that represents all the data related to a device. Each device contains a set of data,
+ * which is shared between all SmartDevices. This class extends BaseObservable to accommodate for
+ * databinding with the UI.
+ */
 public class DeviceData extends BaseObservable {
 
   @Getter private int id;
   @Getter private String name;
   @Getter private boolean isProtected;
-  @Getter private String status;
+  @Getter @Setter private String status;
   @Getter @Setter private boolean enabled;
   @Getter private String type;
   @Getter private String topic;
@@ -27,6 +31,17 @@ public class DeviceData extends BaseObservable {
   @Accessors(chain = true)
   private String username;
 
+  /**
+   * Default constructor
+   *
+   * @param id the id of this device
+   * @param name the name of the device
+   * @param isProtected indicated if the device is password protected
+   * @param status the status of the device
+   * @param enabled indicates if the device is enabled or not
+   * @param type the type of the device
+   * @param topic the topic this device will listen to
+   */
   public DeviceData(
       int id,
       String name,
@@ -63,33 +78,51 @@ public class DeviceData extends BaseObservable {
         && Objects.equals(username, that.username);
   }
 
+  /**
+   * Setter for the protected field.
+   *
+   * @param isProtected if the device is credentials protected or not.
+   * @return this data
+   */
   public DeviceData setProtected(boolean isProtected) {
     this.isProtected = isProtected;
     notifyPropertyChanged(BR._all);
     return this;
   }
 
+  /**
+   * Set the name of the device
+   *
+   * @param name the new name of the device
+   * @return this
+   */
   public DeviceData setName(String name) {
     this.name = name;
     notifyPropertyChanged(BR._all);
     return this;
   }
 
+  /**
+   * Set the username of the device
+   *
+   * @param username the new username
+   * @return this instance
+   */
   public DeviceData setUsername(String username) {
     this.username = username;
     notifyPropertyChanged(BR._all);
     return this;
   }
 
+  /**
+   * Set the topic of this device.
+   *
+   * @param topic the new topic.
+   * @return this instance.
+   */
   public DeviceData setTopic(String topic) {
     this.topic = topic;
     notifyPropertyChanged(BR._all);
     return this;
-  }
-
-  public void setStatus(String status) {
-    this.status = status;
-    notifyPropertyChanged(BR._all);
-    Log.d("mqtt", status);
   }
 }

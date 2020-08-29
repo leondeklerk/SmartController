@@ -7,16 +7,18 @@ import androidx.preference.PreferenceManager;
 import com.leondeklerk.smartcontroller.data.Command;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-public class MqttClient {
+public class MqttClient implements MqttCallback {
   private static MqttClient INSTANCE;
 
   private MqttAndroidClient client;
@@ -24,7 +26,8 @@ public class MqttClient {
   String serverUri;
   final String subscriptionTopic = "stat/+/RESULT";
 
-  private Map<String, MqttCallback> registeredCallbacks;
+  private Map<String, ConnectionsHandler> registeredHandlers;
+  @Getter private ConnectionsHandler currentHandler;
   private SharedPreferences preferences;
 
   private MqttClient(Context context) {
@@ -37,12 +40,14 @@ public class MqttClient {
     client =
         new MqttAndroidClient(
             context, serverUri, org.eclipse.paho.client.mqttv3.MqttClient.generateClientId());
-    registeredCallbacks = new HashMap<>();
+    registeredHandlers = new HashMap<>();
 
-    connect(context);
+    currentHandler = (ConnectionsHandler) context;
+
+    connect();
   }
 
-  private void connect(final Context context) {
+  private void connect() {
     MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
     mqttConnectOptions.setAutomaticReconnect(false);
     mqttConnectOptions.setCleanSession(false);
@@ -57,20 +62,21 @@ public class MqttClient {
           new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken asyncActionToken) {
+              Log.d("Mqtt", "Connected to: " + serverUri);
               DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
               disconnectedBufferOptions.setBufferEnabled(false);
               disconnectedBufferOptions.setBufferSize(100);
               disconnectedBufferOptions.setPersistBuffer(false);
               disconnectedBufferOptions.setDeleteOldestMessages(false);
               client.setBufferOpts(disconnectedBufferOptions);
-              ((MainActivity) context).onConnection(true);
-              subscribeToTopic(context);
+              currentHandler.onMqttConnected(true);
+              subscribeToTopic();
             }
 
             @Override
             public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
               Log.d("Mqtt", "Failed to connect to: " + serverUri + exception.toString());
-              ((MainActivity) context).onConnection(false);
+              currentHandler.onMqttConnected(false);
             }
           });
 
@@ -79,17 +85,36 @@ public class MqttClient {
     }
   }
 
-  public void setCallback(String key) {
-    MqttCallback callback = registeredCallbacks.get(key);
-    if (callback != null) {
-      client.setCallback(registeredCallbacks.get(key));
+  public void setHandler(String key) {
+    ConnectionsHandler handler = registeredHandlers.get(key);
+    if (handler != null) {
+      currentHandler = handler;
     }
   }
 
-  private void subscribeToTopic(Context context) {
-    Log.d("mqtt", "subscriping reached?");
+  public void setCallback() {
+    client.setCallback(this);
+  }
+
+  private void subscribeToTopic() {
     try {
-      client.subscribe(subscriptionTopic, 0, null, (MainActivity) context);
+      client.subscribe(
+          subscriptionTopic,
+          0,
+          null,
+          new IMqttActionListener() {
+            @Override
+            public void onSuccess(IMqttToken asyncActionToken) {
+              Log.d("Mqtt", "Subscribed!");
+              setCallback();
+              currentHandler.onMqttSubscribe();
+            }
+
+            @Override
+            public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+              Log.d("Mqtt", "Subscribed fail!");
+            }
+          });
 
     } catch (MqttException ex) {
       Log.d("Mqtt", "Error while subscribing");
@@ -125,13 +150,13 @@ public class MqttClient {
   }
 
   /**
-   * Register a new callback the client can be switched to.
+   * Register a new ConnectionsHandler that the client can be switched to.
    *
-   * @param key the key of the callback to identify it.
-   * @param newCallback the new callback that needs to be registered.
+   * @param key the key of the handler to identify it.
+   * @param newHandler the new handler that needs to be registered.
    */
-  public void registerCallback(String key, MqttCallback newCallback) {
-    registeredCallbacks.put(key, newCallback);
+  public void registerHandler(String key, ConnectionsHandler newHandler) {
+    registeredHandlers.put(key, newHandler);
   }
 
   /**
@@ -151,5 +176,20 @@ public class MqttClient {
     INSTANCE.destroy();
     INSTANCE = null;
     return getInstance(context);
+  }
+
+  @Override
+  public void connectionLost(Throwable cause) {
+    Log.d("Mqtt", "Connection lost");
+  }
+
+  @Override
+  public void messageArrived(String topic, MqttMessage message) {
+    currentHandler.onMqttMessage(topic, message);
+  }
+
+  @Override
+  public void deliveryComplete(IMqttDeliveryToken token) {
+    // Delivered
   }
 }

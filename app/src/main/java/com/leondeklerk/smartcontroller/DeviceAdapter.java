@@ -9,37 +9,50 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.gson.Gson;
 import com.leondeklerk.smartcontroller.DeviceAdapter.CardViewHolder;
 import com.leondeklerk.smartcontroller.databinding.ComponentCardsBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
+/** Adapter for a RecyclerView filled with SmartDevice instances. */
 public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
 
   private ArrayList<SmartDevice> devices;
   private Activity context;
 
-  // Provide a reference to the views for each data item
-  // Complex data items may need more than one view per item, and
-  // you provide access to all the views for a data item in a view holder
+  /** A view for each of the cards in the RecyclerView. */
   static class CardViewHolder extends RecyclerView.ViewHolder {
 
-    // Each item in the adapter is a CardView
     ComponentCardsBinding binding;
 
+    /**
+     * Default constructor
+     *
+     * @param binding the binding that represents the view.
+     */
     CardViewHolder(ComponentCardsBinding binding) {
       super(binding.getRoot());
       this.binding = binding;
     }
 
+    /**
+     * Bind the smartDevice to the layout.
+     *
+     * @param device the device to bind.
+     */
     public void bind(SmartDevice device) {
       binding.setDevice(device);
       binding.executePendingBindings();
     }
   }
 
+  /**
+   * Default constructor for the adapter, takes the context and the list of devices.
+   *
+   * @param devices the devices to create this adapter with.
+   * @param context the application context to use.
+   */
   DeviceAdapter(ArrayList<SmartDevice> devices, Activity context) {
     this.devices = devices;
     this.context = context;
@@ -62,6 +75,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
     holder.bind(device);
     ComponentCardsBinding binding = holder.binding;
 
+    // Button for the edit Activity
     binding.deviceEdit.setOnClickListener(
         new OnClickListener() {
           @Override
@@ -74,6 +88,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
           }
         });
 
+    // Button for the color Activity
     binding.deviceColor.setOnClickListener(
         new OnClickListener() {
           @Override
@@ -84,10 +99,12 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
           }
         });
 
+    // Switch for the power.
     binding.devicePower.setOnCheckedChangeListener(
         new OnCheckedChangeListener() {
           @Override
           public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            // Check if it is pressed by the users (not anything else)
             if (buttonView.isPressed()) {
               MqttClient client = ((MainActivity) context).getMqttClient();
               client.publish(device.setPower(isChecked));

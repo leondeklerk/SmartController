@@ -10,6 +10,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
+/**
+ * The activity that contains all the applications settings. Mainly uses for the MQTT server
+ * settings.
+ */
 public class SettingsActivity extends AppCompatActivity
     implements OnSharedPreferenceChangeListener {
 
@@ -44,6 +48,7 @@ public class SettingsActivity extends AppCompatActivity
 
   @Override
   public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    // If a preference changed, notify the calling Activity.
     result = new Intent();
     result.putExtra(MainActivity.EXTRA_PREFS_CHANGED, true);
     setResult(Activity.RESULT_OK, result);

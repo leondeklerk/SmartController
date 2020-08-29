@@ -25,6 +25,10 @@ import com.leondeklerk.smartcontroller.utils.TextInputUtils;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A fragment that represents the actual device edit screen withing the carousel of edit screens.
+ * Contains all the data of a device and the options to alter this data.
+ */
 public class DeviceEditFragment extends Fragment implements View.OnClickListener {
 
   static final String ARG_FRAG_NUM = "com.leondeklerk.smartcontroller.FRAG_NUM";
@@ -178,7 +182,7 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
         .create();
   }
 
-  /** */
+  /** Sets up the password dialog. Adding the correct state and listeners. */
   private void setUpPwdDialog() {
     // Set the listeners of the buttons
     dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(this);
