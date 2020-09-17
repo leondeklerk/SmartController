@@ -68,7 +68,6 @@ public class TextInputUtils {
    * additional information. Based on the values a new SmartDevice will be created and returned.
    *
    * @param layouts the list of fields to read the data from.
-   * @param isProtected true if the device contains credentials, false if not.
    * @param nextId the id of this new device.
    * @return a new SmartDevice based on the read data.
    */

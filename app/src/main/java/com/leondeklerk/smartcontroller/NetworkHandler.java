@@ -6,6 +6,7 @@ import android.net.ConnectivityManager.NetworkCallback;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
+import android.util.Log;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +28,15 @@ public class NetworkHandler extends NetworkCallback {
   public void onAvailable(@NotNull Network network) {
     // Make sure the first network change doesn't do anything (app startup)
     if (count > 1) {
+      Log.d("NetworkHandler@onAvailable#if", "Bigger");
       // Do what you need to do here
       if (currentHandler != null) {
         currentHandler.onNetworkChange();
+      } else {
+        Log.d("NetworkHandler@onAvailable#if#else", "no handler");
       }
+    } else {
+      Log.d("NetworkHandler@onAvailable#else", "smaller");
     }
     count++;
   }
@@ -52,6 +58,9 @@ public class NetworkHandler extends NetworkCallback {
 
     if (connectivityManager != null) {
       connectivityManager.registerNetworkCallback(request, this);
+      Log.d("NetworkHandler@register#notNull", "callback registered");
+    } else {
+      Log.d("NetworkHandler@register#null", "Manager null");
     }
   }
 
@@ -65,7 +74,10 @@ public class NetworkHandler extends NetworkCallback {
         (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
     if (connectivityManager != null) {
+      Log.d("NetworkHandler@unregister#notNull", "callback unregistered");
       connectivityManager.unregisterNetworkCallback(this);
+    } else {
+      Log.d("NetworkHandler@unregister#null", "callback not unregistered");
     }
   }
 
@@ -75,6 +87,7 @@ public class NetworkHandler extends NetworkCallback {
    * @return the handler instance.
    */
   public static NetworkHandler getHandler() {
+    Log.d("NetworkHandler@getHandler", "Handler requested");
     if (INSTANCE == null) {
       INSTANCE = new NetworkHandler();
     }

@@ -86,7 +86,7 @@ public class DeviceColorActivity extends FragmentActivity
         client.publish(device.setColor(red, green, blue));
         break;
       default:
-        Log.d("Clicked", "Non-existent button clicked (color)");
+        Log.d("DeviceColorActivity@onClick", "Non-existent button clicked (color)");
     }
   }
 

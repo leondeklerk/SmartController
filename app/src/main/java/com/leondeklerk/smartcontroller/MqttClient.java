@@ -62,7 +62,7 @@ public class MqttClient implements MqttCallback {
           new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken asyncActionToken) {
-              Log.d("Mqtt", "Connected to: " + serverUri);
+              Log.d("MqttClient@connect#onSuccess", "Connected to: " + serverUri);
               DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
               disconnectedBufferOptions.setBufferEnabled(false);
               disconnectedBufferOptions.setBufferSize(100);
@@ -75,19 +75,20 @@ public class MqttClient implements MqttCallback {
 
             @Override
             public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-              Log.d("Mqtt", "Failed to connect to: " + serverUri + exception.toString());
+              Log.d("MqttClient@connect#onFailure", "Failed to connect to: " + serverUri + exception.toString(), exception);
               currentHandler.onMqttConnected(false);
             }
           });
 
     } catch (MqttException ex) {
-      Log.d("Mqtt", "Error while connecting");
+      Log.d("MqttClient@connect#catch", "Error while connecting", ex);
     }
   }
 
   public void setHandler(String key) {
     ConnectionsHandler handler = registeredHandlers.get(key);
     if (handler != null) {
+      Log.d("MqttClient@setHandler#notNull", key);
       currentHandler = handler;
     }
   }
@@ -105,19 +106,19 @@ public class MqttClient implements MqttCallback {
           new IMqttActionListener() {
             @Override
             public void onSuccess(IMqttToken asyncActionToken) {
-              Log.d("Mqtt", "Subscribed!");
+              Log.d("MqttClient@subscribeToTopic#onSuccess", "Subscribed!");
               setCallback();
               currentHandler.onMqttSubscribe();
             }
 
             @Override
             public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-              Log.d("Mqtt", "Subscribed fail!");
+              Log.d("MqttClient@subscribeToTopic#onFailure", "Subscribed fail", exception);
             }
           });
 
     } catch (MqttException ex) {
-      Log.d("Mqtt", "Error while subscribing");
+      Log.d("MqttClient@subscribeToTopic#catch", "Error while subscribing", ex);
     }
   }
 
@@ -128,9 +129,9 @@ public class MqttClient implements MqttCallback {
           client.disconnect();
         }
       }
-      Log.d("Mqtt", "Client destroyed");
+      Log.d("MqttClient@destroy#try", "Client destroyed");
     } catch (MqttException e) {
-      Log.d("Mqtt", "Error while destroying");
+      Log.d("MqttClient@destroy#catch", "Error while destroying", e);
     }
   }
 
@@ -144,8 +145,9 @@ public class MqttClient implements MqttCallback {
       MqttMessage message = new MqttMessage();
       message.setPayload(command.getMessage().getBytes());
       client.publish(command.getTopic(), message);
+      Log.d("MqttClient@publish#try", command.getMessage());
     } catch (MqttException e) {
-      Log.d("Mqtt", "Error while publishing");
+      Log.d("MqttClient@publish#catch", "Error while publishing", e);
     }
   }
 
@@ -156,6 +158,7 @@ public class MqttClient implements MqttCallback {
    * @param newHandler the new handler that needs to be registered.
    */
   public void registerHandler(String key, ConnectionsHandler newHandler) {
+    Log.d("MqttClient@registerHandler", key);
     registeredHandlers.put(key, newHandler);
   }
 
@@ -167,12 +170,14 @@ public class MqttClient implements MqttCallback {
    */
   public static MqttClient getInstance(Context context) {
     if (INSTANCE == null) {
+      Log.d("MqttClient@getInstance", "null");
       INSTANCE = new MqttClient(context);
     }
     return INSTANCE;
   }
 
   public static MqttClient reconnect(Context context) {
+    Log.d("MqttClient@reconnect", "Reconnecting");
     INSTANCE.destroy();
     INSTANCE = null;
     return getInstance(context);
@@ -180,16 +185,21 @@ public class MqttClient implements MqttCallback {
 
   @Override
   public void connectionLost(Throwable cause) {
-    Log.d("Mqtt", "Connection lost");
+    Log.d("MqttClient@connectionLost", "Connection lost", cause);
   }
 
   @Override
   public void messageArrived(String topic, MqttMessage message) {
+    Log.d("MqttClient@messageArrived", message.toString());
     currentHandler.onMqttMessage(topic, message);
   }
 
   @Override
   public void deliveryComplete(IMqttDeliveryToken token) {
-    // Delivered
+    Log.d("MqttClient@deliveryComplete", "Delivered");
+  }
+
+  public boolean isConnected(){
+    return client.isConnected();
   }
 }

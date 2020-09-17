@@ -129,11 +129,13 @@ public class MainActivity extends AppCompatActivity
 
     // Unregister the handler
     if (networkHandler != null) {
+      Log.d("MainActivity@onDestroy#handler", "unregistered");
       networkHandler.unregister(this);
     }
 
     // Delete the MQTT client
     if (mqttClient != null) {
+      Log.d("MainActivity@onDestroy#client", "unregistered");
       mqttClient.destroy();
     }
   }
@@ -143,8 +145,10 @@ public class MainActivity extends AppCompatActivity
     super.onResume();
     networkHandler.setCurrentHandler(this);
     if (mqttClient.getCurrentHandler() != this) {
+      Log.d("MainActivity@onResume#notThis", "not the current handler");
       mqttClient.setHandler("MainActivity");
     }
+    connected = mqttClient.isConnected();
     pingStatus(-1);
   }
 
@@ -220,7 +224,7 @@ public class MainActivity extends AppCompatActivity
         startActivityForResult(intent, 1);
         return true;
       case R.id.help:
-        Log.d("Menu", "Reached help");
+        Log.d("MainActivity@onMenuItemClick#help", "Reached help");
         return true;
       default:
         return false;
@@ -229,12 +233,14 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onRefresh() {
+    Log.d("MainActivity@onRefresh", "refreshed");
     // Ping all devices
     pingStatus(-1);
   }
 
   @Override
   public void onMqttMessage(String topic, MqttMessage message) {
+    Log.d("MainActivity@onMqttMessage", "Messaged arrived: " + message.toString());
     Pair<String, Boolean> parsedTopic = getTopic(topic);
     if (parsedTopic.second) {
       Entry entry = deviceMap.get(parsedTopic.first);
@@ -246,6 +252,8 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onMqttSubscribe() {
+    Log.d("MainActivity@onMqttSubscribe", "subscribed");
+
     // Set connected to true and register the handlers.
     connected = true;
     mqttClient.registerHandler("MainActivity", this);
@@ -257,6 +265,7 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onMqttConnected(boolean connected) {
+    Log.d("MainActivity@onMqttConnected", String.valueOf(connected));
     // If no connection could be made, notify the users.
     if (!connected) {
       Toast.makeText(
@@ -270,6 +279,7 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public void onNetworkChange() {
+    Log.d("MainActivity@onNetworkChange", "changed");
     // If the network changed. Change all device statuses and try to reconnect the MqttClient.
     resetStatus();
     connected = false;
@@ -314,6 +324,7 @@ public class MainActivity extends AppCompatActivity
    */
   public void pingStatus(int id) {
     if (connected) {
+      Log.d("MainActivity@pingStatus#if", "connected");
       if (id >= 0) {
         devices.get(id).getData().setStatus(getString(R.string.status_unknown));
         mqttClient.publish(devices.get(id).getPowerStatus());
@@ -325,6 +336,7 @@ public class MainActivity extends AppCompatActivity
         }
       }
     } else {
+      Log.d("MainActivity@pingStatus#else", "not connected");
       resetStatus();
       refreshLayout.setRefreshing(false);
     }
@@ -392,6 +404,7 @@ public class MainActivity extends AppCompatActivity
       JSONObject obj = new JSONObject(message.toString());
       statusString = obj.getString("POWER");
     } catch (JSONException e) {
+      Log.d("MainActivity@parseErsponse#catch", "not parsable", e);
       entry.getDevice().getData().setStatus(getString(R.string.status_unknown));
       e.printStackTrace();
       return;

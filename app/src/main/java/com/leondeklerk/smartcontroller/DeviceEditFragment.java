@@ -110,7 +110,7 @@ public class DeviceEditFragment extends Fragment implements View.OnClickListener
         }
         break;
       default:
-        Log.d("Unknown button", String.valueOf(v.getId()));
+        Log.d("DeviceEditFragment@onClick", String.valueOf(v.getId()));
     }
   }
 
