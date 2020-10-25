@@ -5,8 +5,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.PreferenceManager.OnActivityResultListener;
+import android.util.Log;
 import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.Preference;
+import androidx.preference.Preference.OnPreferenceClickListener;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 import com.leondeklerk.smartcontroller.databinding.SettingsActivityBinding;
@@ -16,7 +20,7 @@ import com.leondeklerk.smartcontroller.databinding.SettingsActivityBinding;
  * settings.
  */
 public class SettingsActivity extends AppCompatActivity
-    implements OnSharedPreferenceChangeListener {
+    implements OnSharedPreferenceChangeListener {//, OnPreferenceClickListener {
 
   private Intent result;
 
@@ -65,6 +69,24 @@ public class SettingsActivity extends AppCompatActivity
     result.putExtra(MainActivity.EXTRA_PREFS_CHANGED, true);
     setResult(Activity.RESULT_OK, result);
   }
+
+//  @Override
+//  public boolean onPreferenceClick(Preference preference) {
+//    Log.d("SettingsActivity@onPreferenceClick", preference.getKey());
+//    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//    intent.addCategory(Intent.CATEGORY_OPENABLE);
+//    intent.setType("*/*");
+//    Intent i = Intent.createChooser(intent, "File");
+//    startActivityForResult(i, 0);
+//    return false;
+//  }
+//
+//  @Override
+//  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+//    super.onActivityResult(requestCode, resultCode, data);
+//    Log.d("SettingsActivity@onActivityResutl", data.getDataString());
+//
+//  }
 
   public static class SettingsFragment extends PreferenceFragmentCompat {
 

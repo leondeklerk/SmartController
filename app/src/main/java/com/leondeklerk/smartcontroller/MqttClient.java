@@ -2,11 +2,21 @@ package com.leondeklerk.smartcontroller;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.util.Log;
 import androidx.preference.PreferenceManager;
 import com.leondeklerk.smartcontroller.data.Command;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import lombok.Getter;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
@@ -19,6 +29,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 public class MqttClient implements MqttCallback {
+
   private static MqttClient INSTANCE;
 
   private MqttAndroidClient client;
@@ -26,17 +37,19 @@ public class MqttClient implements MqttCallback {
   String serverUri;
   final String subscriptionTopic = "stat/+/RESULT";
 
-  private Map<String, ConnectionsHandler> registeredHandlers;
-  @Getter private ConnectionsHandler currentHandler;
-  private SharedPreferences preferences;
+  private final Map<String, ConnectionsHandler> registeredHandlers;
+  @Getter
+  private ConnectionsHandler currentHandler;
+  private final SharedPreferences preferences;
 
   private MqttClient(Context context) {
     preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    //TODO add setting
     serverUri =
         String.format(
-            "tcp://%s:%s",
+            "ssl://%s:%s",
             preferences.getString("mqtt_ip", "localhost"),
-            Integer.parseInt(preferences.getString("mqtt_port", "1883")));
+            Integer.parseInt(preferences.getString("mqtt_port", "8883")));
     client =
         new MqttAndroidClient(
             context, serverUri, org.eclipse.paho.client.mqttv3.MqttClient.generateClientId());
@@ -44,10 +57,10 @@ public class MqttClient implements MqttCallback {
 
     currentHandler = (ConnectionsHandler) context;
 
-    connect();
+    connect(context);
   }
 
-  private void connect() {
+  private void connect(Context context) {
     MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
     mqttConnectOptions.setAutomaticReconnect(false);
     mqttConnectOptions.setCleanSession(false);
@@ -55,6 +68,30 @@ public class MqttClient implements MqttCallback {
     mqttConnectOptions.setPassword(preferences.getString("mqtt_password", "admin").toCharArray());
 
     try {
+      CertificateFactory cf = CertificateFactory.getInstance("X.509");
+      InputStream caInput = new BufferedInputStream(context.getAssets().open("minica.pem"));
+      Certificate ca;
+      try {
+        ca = cf.generateCertificate(caInput);
+      } finally {
+        caInput.close();
+      }
+
+      // Create a KeyStore containing our trusted CAs
+      String keyStoreType = KeyStore.getDefaultType();
+      KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+      keyStore.load(null, null);
+      keyStore.setCertificateEntry("ca", ca);
+
+      // Create a TrustManager that trusts the CAs in our KeyStore
+      String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+      TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+      tmf.init(keyStore);
+
+      // Create an SSLContext that uses our TrustManager
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(null, tmf.getTrustManagers(), null);
+      mqttConnectOptions.setSocketFactory(sslContext.getSocketFactory());
 
       client.connect(
           mqttConnectOptions,
@@ -75,12 +112,13 @@ public class MqttClient implements MqttCallback {
 
             @Override
             public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-              Log.d("MqttClient@connect#onFailure", "Failed to connect to: " + serverUri + exception.toString(), exception);
+              Log.d("MqttClient@connect#onFailure",
+                  "Failed to connect to: " + serverUri + exception.toString(), exception);
               currentHandler.onMqttConnected(false);
             }
           });
 
-    } catch (MqttException ex) {
+    } catch (Exception ex) {
       Log.d("MqttClient@connect#catch", "Error while connecting", ex);
     }
   }
@@ -154,7 +192,7 @@ public class MqttClient implements MqttCallback {
   /**
    * Register a new ConnectionsHandler that the client can be switched to.
    *
-   * @param key the key of the handler to identify it.
+   * @param key        the key of the handler to identify it.
    * @param newHandler the new handler that needs to be registered.
    */
   public void registerHandler(String key, ConnectionsHandler newHandler) {
@@ -199,7 +237,7 @@ public class MqttClient implements MqttCallback {
     Log.d("MqttClient@deliveryComplete", "Delivered");
   }
 
-  public boolean isConnected(){
+  public boolean isConnected() {
     return client.isConnected();
   }
 }

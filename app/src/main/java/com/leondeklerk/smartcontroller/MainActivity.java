@@ -148,7 +148,12 @@ public class MainActivity extends AppCompatActivity
       Log.d("MainActivity@onResume#notThis", "not the current handler");
       mqttClient.setHandler("MainActivity");
     }
-    connected = mqttClient.isConnected();
+
+    if(!mqttClient.isConnected()) {
+      connected = false;
+      mqttClient = MqttClient.reconnect(this);
+    }
+
     pingStatus(-1);
   }
 

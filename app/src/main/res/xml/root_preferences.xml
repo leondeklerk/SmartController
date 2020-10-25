@@ -1,4 +1,5 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto">
 
   <PreferenceCategory app:title="@string/mqtt_header">
 
@@ -21,5 +22,16 @@
       app:key="mqtt_password"
       app:title="@string/mqtt_password"
       app:useSimpleSummaryProvider="true" />
+
+    <SwitchPreference
+      app:defaultValue="true"
+      app:key="mqtt_https"
+      app:title="@string/mqtt_https" />
+
+    <Preference
+      app:title="@string/mqtt_ca"
+      app:key="filePicker"
+      app:useSimpleSummaryProvider="true"
+      />
   </PreferenceCategory>
 </PreferenceScreen>

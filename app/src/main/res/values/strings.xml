@@ -68,4 +68,6 @@
   <string name="mqtt_port">Server port</string>
   <string name="mqtt_password">Server password</string>
   <string name="mqtt_username">Server username</string>
+  <string name="mqtt_https">Connect over HTTPS</string>
+  <string name="mqtt_ca">CA Certificate</string>
 </resources>
