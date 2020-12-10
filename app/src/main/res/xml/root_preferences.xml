@@ -14,24 +14,24 @@
       app:useSimpleSummaryProvider="true" />
 
     <EditTextPreference
-      app:key="mqtt_username"
-      app:title="@string/mqtt_username"
-      app:useSimpleSummaryProvider="true" />
+        app:key="mqtt_username"
+        app:title="@string/mqtt_username"
+        app:useSimpleSummaryProvider="true" />
 
     <EditTextPreference
-      app:key="mqtt_password"
-      app:title="@string/mqtt_password"
-      app:useSimpleSummaryProvider="true" />
+        app:key="mqtt_password"
+        app:title="@string/mqtt_password"
+        android:inputType="textPassword"
+        app:useSimpleSummaryProvider="true" />
 
     <SwitchPreference
-      app:defaultValue="true"
-      app:key="mqtt_https"
-      app:title="@string/mqtt_https" />
+        app:defaultValue="false"
+        app:key="mqtt_ssl"
+        app:title="@string/mqtt_https" />
 
     <Preference
-      app:title="@string/mqtt_ca"
-      app:key="filePicker"
-      app:useSimpleSummaryProvider="true"
-      />
+        app:title="@string/mqtt_ca"
+        app:key="filePicker"
+        app:useSimpleSummaryProvider="true" />
   </PreferenceCategory>
 </PreferenceScreen>
