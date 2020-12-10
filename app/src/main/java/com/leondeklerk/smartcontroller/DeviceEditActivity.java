@@ -10,6 +10,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.leondeklerk.smartcontroller.databinding.ActivityDeviceEditBinding;
 import org.jetbrains.annotations.NotNull;
 
+/** Activity used to edit the data of a device. */
 public class DeviceEditActivity extends FragmentActivity {
 
   public static final String EXTRA_SELECTED_DEV = "com.leondeklerk.smartcontroller.SELECTED_DEV";
@@ -43,8 +44,14 @@ public class DeviceEditActivity extends FragmentActivity {
     viewPager.setCurrentItem(intent.getIntExtra(EXTRA_SELECTED_DEV, 0));
   }
 
+  /** An adapter containing all the DeviceEditFragments. */
   private static class DeviceEditFragmentAdapter extends FragmentStateAdapter {
 
+    /**
+     * Default constructor.
+     *
+     * @param fragmentActivity the Activity that this fragment is related to.
+     */
     DeviceEditFragmentAdapter(FragmentActivity fragmentActivity) {
       super(fragmentActivity);
     }
@@ -52,7 +59,6 @@ public class DeviceEditActivity extends FragmentActivity {
     @NotNull
     @Override
     public Fragment createFragment(int position) {
-      // TODO pass device data along
       Fragment fragment = new DeviceEditFragment();
       Bundle args = new Bundle();
       args.putInt(DeviceEditFragment.ARG_FRAG_NUM, position);

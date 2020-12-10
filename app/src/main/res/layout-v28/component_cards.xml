@@ -70,8 +70,9 @@
         android:layout_marginTop="8dp"
         android:layout_marginStart="16dp"
         android:alpha="?alphaEmphasisMedium"
-        android:text="@{@string/device_ip + device.data.ip}"
+        android:text='@{device.data.topic != null ? (device.data.topic.length() > 28 ? device.data.topic.substring(0, 25) + "..." : device.data.topic) : ""}'
         android:textAppearance="?textAppearanceOverline"
+        android:textSize="8sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/device_status" />
 

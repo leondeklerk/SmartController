@@ -3,18 +3,18 @@ package com.leondeklerk.smartcontroller;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
+import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.DiffUtil.DiffResult;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,8 +22,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
-import com.leondeklerk.smartcontroller.data.DeviceData;
-import com.leondeklerk.smartcontroller.data.Response;
+import com.leondeklerk.smartcontroller.data.Entry;
 import com.leondeklerk.smartcontroller.databinding.ActivityMainBinding;
 import com.leondeklerk.smartcontroller.databinding.DeviceDialogBinding;
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
@@ -33,36 +32,48 @@ import com.leondeklerk.smartcontroller.utils.TextInputUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Getter;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Main Activity of the application. Contains the basis navigation for the settings and help pages.
+ * Its main layout contains the RecyclerView with all the device cards in it. Providing an up to
+ * date status of all devices, taking network and preference changes into account. Also contains a
+ * FAB and logic to add new devices.
+ */
 public class MainActivity extends AppCompatActivity
-    implements NetworkCallback, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
+    implements View.OnClickListener,
+        SwipeRefreshLayout.OnRefreshListener,
+        Toolbar.OnMenuItemClickListener,
+        ConnectionsHandler {
 
   static final String EXTRA_DEV_REMOVED = "com.leondeklerk.smartcontroller.DEV_REMOVED";
   static final String EXTRA_DEV_CHANGED = "com.leondeklerk.smartcontroller.DEV_CHANGED";
-  public static boolean NET_CHANGED = false;
-  private boolean APP_ACTIVE = true;
+  static final String EXTRA_PREFS_CHANGED = "com.leondeklerk.smartcontroller.PREFS_CHANGED";
   private DeviceDialogBinding dialogBinding;
-  private Map<Integer, ResponseTask> taskMap;
   private DeviceStorageUtils deviceStorageUtils;
   private ArrayList<TextInputLayout> layouts;
+  private Map<String, Entry> deviceMap;
+  @Getter private MqttClient mqttClient;
+  private NetworkHandler networkHandler;
+  private boolean connected;
   DeviceAdapter deviceAdapter;
   Context context;
   ArrayList<SmartDevice> devices;
   AlertDialog addDeviceDialog;
   SharedPreferences preferences;
   SwipeRefreshLayout refreshLayout;
-  NetworkReceiver receiver;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    // Register the NetworkReceiver
-    IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-    receiver = new NetworkReceiver();
-    this.registerReceiver(receiver, filter);
+    // Register the Network change handler
+    networkHandler = NetworkHandler.getHandler();
+    networkHandler.register(this);
+    networkHandler.setCurrentHandler(this);
 
     // Bind the MainActivity layout file
     com.leondeklerk.smartcontroller.databinding.ActivityMainBinding binding =
@@ -73,10 +84,15 @@ public class MainActivity extends AppCompatActivity
     context = this;
     preferences = this.getSharedPreferences(getString(R.string.dev_prefs), Context.MODE_PRIVATE);
 
-    deviceStorageUtils = new DeviceStorageUtils(preferences);
-    taskMap = new HashMap<>();
+    // Get the MQTT client.
+    mqttClient = MqttClient.getInstance(this);
+
+    deviceStorageUtils = new DeviceStorageUtils(preferences, context);
+    deviceMap = new HashMap<>();
 
     devices = deviceStorageUtils.getDevices();
+
+    buildDeviceMap();
 
     // Create a RecyclerView for the deviceCards
     RecyclerView recyclerView = binding.deviceList;
@@ -92,8 +108,7 @@ public class MainActivity extends AppCompatActivity
     refreshLayout = binding.deviceListRefresh;
     refreshLayout.setOnRefreshListener(this);
 
-    // Ping the devices for their status
-    pingStatus(-1);
+    binding.toolbar.setOnMenuItemClickListener(this);
 
     // Set the FAB listener for device creation
     binding.fab.setOnClickListener(
@@ -111,99 +126,43 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onDestroy() {
     super.onDestroy();
-    if (receiver != null) {
-      unregisterReceiver(receiver);
+
+    // Unregister the handler
+    if (networkHandler != null) {
+      Log.d("MainActivity@onDestroy#handler", "unregistered");
+      networkHandler.unregister(this);
+    }
+
+    // Delete the MQTT client
+    if (mqttClient != null) {
+      Log.d("MainActivity@onDestroy#client", "unregistered");
+      mqttClient.destroy();
     }
   }
 
   @Override
   public void onResume() {
     super.onResume();
-    // Flag as in the foreground
-    APP_ACTIVE = true;
-
-    // If network changed while on pause, ping devices
-    if (NET_CHANGED) {
-      NET_CHANGED = false;
-      pingStatus(-1);
-    }
-  }
-
-  @Override
-  public void onPause() {
-    super.onPause();
-    // Flag the activity as no longer in the foreground
-    APP_ACTIVE = false;
-  }
-
-  @Override
-  public void onPreExecute(ResponseTask task) {
-    int taskIndex = task.getDeviceNum();
-    ResponseTask curTask = taskMap.get(taskIndex);
-    if (curTask != null) {
-      curTask.cancel(true);
-    }
-    taskMap.put(taskIndex, task);
-  }
-
-  @Override
-  public void onFinish(ResponseTask task, Response response, int deviceNum) {
-    // Remove the task from the list of tasks
-    taskMap.remove(deviceNum);
-
-    DeviceData device = devices.get(deviceNum).getData();
-
-    if (response.getException() != null) {
-      // If there was an error, log it and set status to UNKNOWN
-      Log.d("Network error", response.getException().toString());
-      device.setStatus(getString(R.string.status_unknown));
-    } else {
-      // If there was a response, retrieve the response
-      String statusString;
-      try {
-        JSONObject obj = new JSONObject(response.getResponse());
-        statusString = obj.getString("POWER");
-      } catch (JSONException e) {
-        device.setStatus(getString(R.string.status_unknown));
-        e.printStackTrace();
-        Log.d("JSON Response", response.getResponse());
-        return;
-      }
-      // Set the values according to the response
-      if (statusString.equals("ON")) {
-        device.setStatus(getString(R.string.status_on));
-      } else {
-        device.setStatus(getString(R.string.status_off));
-      }
-      Log.d("Response", response.getResponse());
+    networkHandler.setCurrentHandler(this);
+    if (mqttClient.getCurrentHandler() != this) {
+      Log.d("MainActivity@onResume#notThis", "not the current handler");
+      mqttClient.setHandler("MainActivity");
     }
 
-    // If this was the last task, turn the refreshing animation off
-    if (taskMap.isEmpty()) {
-      refreshLayout.setRefreshing(false);
+    if(!mqttClient.isConnected()) {
+      connected = false;
+      mqttClient = MqttClient.reconnect(this);
     }
 
-    // Update the RecyclerView
-    deviceAdapter.notifyItemChanged(deviceNum);
-  }
-
-  @Override
-  public void onCancel(ResponseTask task) {
-    taskMap.remove(task.getDeviceNum());
+    pingStatus(-1);
   }
 
   @Override
   public void onClick(View v) {
-    // Check if the ip is in the correct format
-    TextInputUtils.checkIp(dialogBinding.newIp);
-
     // Check if any input field has errors
     if (!TextInputUtils.hasErrors(layouts)) {
       // Cancel all tasks and dismiss the dialog
       addDeviceDialog.dismiss();
-
-      // Check if the credentials part is enabled
-      boolean isProtected = dialogBinding.switchCredentials.isChecked();
 
       // Get the type of SmartDevice
       int typeId = dialogBinding.newType.getCheckedButtonId();
@@ -213,11 +172,14 @@ public class MainActivity extends AppCompatActivity
       }
 
       // Create the new device and add it
-      SmartDevice device = TextInputUtils.readDevice(context, type, layouts, isProtected, devices.size());
+      SmartDevice device = TextInputUtils.readDevice(context, type, layouts, devices.size());
       ArrayList<SmartDevice> newList = new ArrayList<>(devices);
       newList.add(device);
 
       updateAdapter(devices, newList);
+
+      // (Re)Build the device map
+      buildDeviceMap();
 
       // Store the new list of devices
       deviceStorageUtils.storeDevices(devices);
@@ -230,29 +192,103 @@ public class MainActivity extends AppCompatActivity
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
-    // If the activity closed normally
-    if (resultCode == RESULT_OK) {
-      int removed = data.getIntExtra(EXTRA_DEV_REMOVED, -1);
-      if (removed >= 0) {
-        ResponseTask task = taskMap.get(removed);
-        if (task != null) task.cancel(true);
-        updateAdapter(devices, deviceStorageUtils.getDevices());
-      }
 
-      int changed = data.getIntExtra(EXTRA_DEV_CHANGED, -1);
-      if (changed >= 0) {
-        ResponseTask task = taskMap.get(changed);
-        if (task != null) task.cancel(true);
-        updateAdapter(devices, deviceStorageUtils.getDevices());
-        pingStatus(changed);
+    if (requestCode == 0) {
+      // If the activity closed normally
+      if (resultCode == RESULT_OK) {
+        int removed = data.getIntExtra(EXTRA_DEV_REMOVED, -1);
+        if (removed >= 0) {
+          updateAdapter(devices, deviceStorageUtils.getDevices());
+          pingStatus(-1);
+        }
+
+        int changed = data.getIntExtra(EXTRA_DEV_CHANGED, -1);
+        if (changed >= 0) {
+          updateAdapter(devices, deviceStorageUtils.getDevices());
+          pingStatus(changed);
+        }
+      }
+    } else if (requestCode == 1) {
+      // If the PreferenceActivity closed normally.
+      if (resultCode == RESULT_OK) {
+        if (data.getBooleanExtra(EXTRA_PREFS_CHANGED, false)) {
+          // If the preferences changed the MqttClient needs to reconnect to the server.
+          connected = false;
+          mqttClient = MqttClient.reconnect(this);
+        }
       }
     }
   }
 
   @Override
+  public boolean onMenuItemClick(MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.settings:
+        // Open the settings screen.
+        Intent intent = new Intent(context, SettingsActivity.class);
+        startActivityForResult(intent, 1);
+        return true;
+      case R.id.help:
+        Log.d("MainActivity@onMenuItemClick#help", "Reached help");
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  @Override
   public void onRefresh() {
+    Log.d("MainActivity@onRefresh", "refreshed");
     // Ping all devices
     pingStatus(-1);
+  }
+
+  @Override
+  public void onMqttMessage(String topic, MqttMessage message) {
+    Log.d("MainActivity@onMqttMessage", "Messaged arrived: " + message.toString());
+    Pair<String, Boolean> parsedTopic = getTopic(topic);
+    if (parsedTopic.second) {
+      Entry entry = deviceMap.get(parsedTopic.first);
+      if (entry != null) {
+        parseResponse(message, entry);
+      }
+    }
+  }
+
+  @Override
+  public void onMqttSubscribe() {
+    Log.d("MainActivity@onMqttSubscribe", "subscribed");
+
+    // Set connected to true and register the handlers.
+    connected = true;
+    mqttClient.registerHandler("MainActivity", this);
+    mqttClient.setHandler("MainActivity");
+
+    // Ping all devices for their status
+    pingStatus(-1);
+  }
+
+  @Override
+  public void onMqttConnected(boolean connected) {
+    Log.d("MainActivity@onMqttConnected", String.valueOf(connected));
+    // If no connection could be made, notify the users.
+    if (!connected) {
+      Toast.makeText(
+              context,
+              "No connection to the MQTT server (change your preferences?)",
+              Toast.LENGTH_SHORT)
+          .show();
+      pingStatus(-1);
+    }
+  }
+
+  @Override
+  public void onNetworkChange() {
+    Log.d("MainActivity@onNetworkChange", "changed");
+    // If the network changed. Change all device statuses and try to reconnect the MqttClient.
+    resetStatus();
+    connected = false;
+    mqttClient = MqttClient.reconnect(this);
   }
 
   /**
@@ -277,45 +313,13 @@ public class MainActivity extends AppCompatActivity
     // Add all TextInputLayouts to a the list for error checking
     layouts = new ArrayList<>();
     layouts.add(dialogBinding.newName);
-    layouts.add(dialogBinding.newIp);
+    layouts.add(dialogBinding.newTopic);
 
     // Register error listeners
     TextInputUtils.setListener(dialogBinding.newName, TextInputUtils.DEFAULT_TYPE);
-    TextInputUtils.setListener(dialogBinding.newIp, TextInputUtils.IP_TYPE);
+    TextInputUtils.setListener(dialogBinding.newTopic, TextInputUtils.DEFAULT_TYPE);
 
-    // Add a listener to the switch to enable / disable credentials
-    dialogBinding.switchCredentials.setOnCheckedChangeListener(
-        new CompoundButton.OnCheckedChangeListener() {
-          @Override
-          public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            setCredentialsAvailability(dialogBinding, isChecked);
-          }
-        });
     return dialog;
-  }
-
-  /**
-   * Enable or disable the credential input fields on a device creation Dialog. This also registers
-   * the correct error listeners.
-   *
-   * @param dialogBinding the view binding containing the views of the dialog.
-   * @param enable boolean whether the fields should be enabled or not
-   */
-  public void setCredentialsAvailability(DeviceDialogBinding dialogBinding, boolean enable) {
-    dialogBinding.newUsername.setEnabled(enable);
-    dialogBinding.newPassword.setEnabled(enable);
-
-    // Add the layouts and there error listeners  if they are enabled or remove them if not
-    if (enable) {
-      layouts.add(dialogBinding.newUsername);
-      TextInputUtils.setListener(dialogBinding.newUsername, TextInputUtils.DEFAULT_TYPE);
-
-      layouts.add(dialogBinding.newPassword);
-      TextInputUtils.setListener(dialogBinding.newPassword, TextInputUtils.DEFAULT_TYPE);
-    } else {
-      layouts.remove(dialogBinding.newUsername);
-      layouts.remove(dialogBinding.newPassword);
-    }
   }
 
   /**
@@ -324,28 +328,23 @@ public class MainActivity extends AppCompatActivity
    * @param id the id of the device to ping.
    */
   public void pingStatus(int id) {
-    if (id >= 0) {
-      createStatusTask(id);
-    } else {
-      // Ping all devices
-      for (int i = 0; i < devices.size(); i++) {
-        createStatusTask(i);
+    if (connected) {
+      Log.d("MainActivity@pingStatus#if", "connected");
+      if (id >= 0) {
+        devices.get(id).getData().setStatus(getString(R.string.status_unknown));
+        mqttClient.publish(devices.get(id).getPowerStatus());
+      } else {
+        // Ping all devices
+        for (int i = 0; i < devices.size(); i++) {
+          devices.get(i).getData().setStatus(getString(R.string.status_unknown));
+          mqttClient.publish(devices.get(i).getPowerStatus());
+        }
       }
+    } else {
+      Log.d("MainActivity@pingStatus#else", "not connected");
+      resetStatus();
+      refreshLayout.setRefreshing(false);
     }
-  }
-
-  /**
-   * Create a network task to ping a device for its status.
-   *
-   * @param id the id of the device.
-   */
-  public void createStatusTask(int id) {
-    refreshLayout.setRefreshing(true);
-
-    ResponseTask task = new ResponseTask((NetworkCallback) context, id);
-    SmartDevice device = devices.get(id);
-    task.executeOnExecutor(
-        AsyncTask.THREAD_POOL_EXECUTOR, device.getCommand(device.getPowerStatus()));
   }
 
   /**
@@ -364,18 +363,73 @@ public class MainActivity extends AppCompatActivity
     devices.clear();
     devices.addAll(newList);
 
+    buildDeviceMap();
+
     diff.dispatchUpdatesTo(deviceAdapter);
   }
 
+  /** Built a device map from the list of devices available, with the topic as a key. */
+  private void buildDeviceMap() {
+    // Reset the current map
+    deviceMap.clear();
+
+    // Fill it with all the entries
+    for (int i = 0; i < devices.size(); i++) {
+      deviceMap.put(devices.get(i).getData().getTopic(), new Entry(i, devices.get(i)));
+    }
+  }
+
   /**
-   * Update the cards because of a network change, but only if the application is currently in the
-   * foreground. If the application is not in the foreground, onPause and onResume will handle the
-   * change.
+   * Extract the device topic from the topic of the arrived message. The extracted topic is used to
+   * identify the id and device associated with this message.
+   *
+   * @param input the message topic
+   * @return A pair with the device topic and a boolean indicating if the topic was valid or not
    */
-  public void updateNetworkChange() {
-    if (APP_ACTIVE) {
-      NET_CHANGED = false;
-      pingStatus(-1);
+  private Pair<String, Boolean> getTopic(String input) {
+    String[] split = input.split("/");
+    if (split.length > 2) {
+      int start = split[0].length() + 1;
+      int end = input.length() - split[split.length - 1].length() - 1;
+      return new Pair<>(input.substring(start, end), true);
+    } else {
+      return new Pair<>(null, false);
+    }
+  }
+
+  /**
+   * Parse the message and handle the outcome.
+   *
+   * @param message The message ot parse.
+   * @param entry The entry to change based on the message.
+   */
+  private void parseResponse(MqttMessage message, Entry entry) {
+    String statusString;
+    try {
+      JSONObject obj = new JSONObject(message.toString());
+      statusString = obj.getString("POWER");
+    } catch (JSONException e) {
+      Log.d("MainActivity@parseErsponse#catch", "not parsable", e);
+      entry.getDevice().getData().setStatus(getString(R.string.status_unknown));
+      e.printStackTrace();
+      return;
+    }
+    // Set the values according to the response
+    if (statusString.equals("ON")) {
+      entry.getDevice().getData().setStatus(getString(R.string.status_on));
+    } else {
+      entry.getDevice().getData().setStatus(getString(R.string.status_off));
+    }
+
+    refreshLayout.setRefreshing(false);
+    // Update the RecyclerView
+    deviceAdapter.notifyItemChanged(entry.getId());
+  }
+
+  /** Reset the status of all devices. */
+  private void resetStatus() {
+    for (SmartDevice device : devices) {
+      device.getData().setStatus(getString(R.string.status_unknown));
     }
   }
 }
