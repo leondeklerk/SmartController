@@ -1,10 +1,10 @@
 package com.leondeklerk.smartcontroller.data;
 
 import androidx.databinding.BaseObservable;
-import androidx.databinding.library.baseAdapters.BR;
+
+import com.leondeklerk.smartcontroller.BR;
+
 import java.util.Objects;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * A class that represents all the data related to a device. Each device contains a set of data,
@@ -13,12 +13,12 @@ import lombok.Setter;
  */
 public class DeviceData extends BaseObservable {
 
-  @Getter private int id;
-  @Getter private String name;
-  @Getter @Setter private String status;
-  @Getter @Setter private boolean enabled;
-  @Getter private String type;
-  @Getter private String topic;
+  private final int id;
+  private String name;
+  private String status;
+  private boolean enabled;
+  private final String type;
+  private String topic;
 
   /**
    * Default constructor
@@ -50,10 +50,18 @@ public class DeviceData extends BaseObservable {
     }
     DeviceData that = (DeviceData) o;
     return id == that.id
-        && enabled == that.enabled
-        && Objects.equals(topic, that.topic)
-        && Objects.equals(name, that.name)
-        && Objects.equals(status, that.status);
+            && enabled == that.enabled
+            && Objects.equals(topic, that.topic)
+            && Objects.equals(name, that.name)
+            && Objects.equals(status, that.status);
+  }
+
+  public int getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
   }
 
   /**
@@ -68,6 +76,10 @@ public class DeviceData extends BaseObservable {
     return this;
   }
 
+  public String getTopic() {
+    return topic;
+  }
+
   /**
    * Set the topic of this device.
    *
@@ -78,5 +90,25 @@ public class DeviceData extends BaseObservable {
     this.topic = topic;
     notifyPropertyChanged(BR._all);
     return this;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  public String getType() {
+    return type;
   }
 }

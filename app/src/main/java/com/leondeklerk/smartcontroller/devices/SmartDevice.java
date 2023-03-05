@@ -2,7 +2,6 @@ package com.leondeklerk.smartcontroller.devices;
 
 import com.leondeklerk.smartcontroller.data.Command;
 import com.leondeklerk.smartcontroller.data.DeviceData;
-import lombok.Getter;
 
 /**
  * A SmartDevice is the base class for all the devices supported. This includes encapsulating the
@@ -12,7 +11,7 @@ import lombok.Getter;
  */
 public class SmartDevice {
 
-  @Getter private DeviceData data;
+  private final DeviceData data;
 
   /**
    * Default constructor to create a new SmartDevice, based on some given device data.
@@ -72,12 +71,16 @@ public class SmartDevice {
   public static SmartDevice clone(SmartDevice other) {
     DeviceData otherData = other.getData();
     return new SmartDevice(
-        new DeviceData(
-            otherData.getId(),
-            otherData.getName(),
-            otherData.getStatus(),
-            otherData.isEnabled(),
-            otherData.getType(),
-            otherData.getTopic()));
+            new DeviceData(
+                    otherData.getId(),
+                    otherData.getName(),
+                    otherData.getStatus(),
+                    otherData.isEnabled(),
+                    otherData.getType(),
+                    otherData.getTopic()));
+  }
+
+  public DeviceData getData() {
+    return data;
   }
 }

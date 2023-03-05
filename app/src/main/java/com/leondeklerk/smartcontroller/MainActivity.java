@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -20,6 +21,7 @@ import androidx.recyclerview.widget.DiffUtil.DiffResult;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 import com.leondeklerk.smartcontroller.data.Entry;
@@ -29,13 +31,14 @@ import com.leondeklerk.smartcontroller.devices.SmartDevice;
 import com.leondeklerk.smartcontroller.utils.DeviceStorageUtils;
 import com.leondeklerk.smartcontroller.utils.DiffUtilCallback;
 import com.leondeklerk.smartcontroller.utils.TextInputUtils;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.Getter;
+
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Main Activity of the application. Contains the basis navigation for the settings and help pages.
@@ -56,7 +59,7 @@ public class MainActivity extends AppCompatActivity
   private DeviceStorageUtils deviceStorageUtils;
   private ArrayList<TextInputLayout> layouts;
   private Map<String, Entry> deviceMap;
-  @Getter private MqttClient mqttClient;
+  private MqttClient mqttClient;
   private NetworkHandler networkHandler;
   private boolean connected;
   DeviceAdapter deviceAdapter;
@@ -112,15 +115,12 @@ public class MainActivity extends AppCompatActivity
 
     // Set the FAB listener for device creation
     binding.fab.setOnClickListener(
-        new View.OnClickListener() {
-          @Override
-          public void onClick(View v) {
-            addDeviceDialog = createDeviceDialog();
-            addDeviceDialog.show();
-            Button button = addDeviceDialog.getButton(DialogInterface.BUTTON_POSITIVE);
-            button.setOnClickListener((View.OnClickListener) context);
-          }
-        });
+            v -> {
+              addDeviceDialog = createDeviceDialog();
+              addDeviceDialog.show();
+              Button button = addDeviceDialog.getButton(DialogInterface.BUTTON_POSITIVE);
+              button.setOnClickListener((View.OnClickListener) context);
+            });
   }
 
   @Override
@@ -222,18 +222,17 @@ public class MainActivity extends AppCompatActivity
 
   @Override
   public boolean onMenuItemClick(MenuItem item) {
-    switch (item.getItemId()) {
-      case R.id.settings:
-        // Open the settings screen.
-        Intent intent = new Intent(context, SettingsActivity.class);
-        startActivityForResult(intent, 1);
-        return true;
-      case R.id.help:
-        Log.d("MainActivity@onMenuItemClick#help", "Reached help");
-        return true;
-      default:
-        return false;
+    int itemId = item.getItemId();
+    if (itemId == R.id.settings) {// Open the settings screen.
+      Intent intent = new Intent(context, SettingsActivity.class);
+      //noinspection deprecation
+      startActivityForResult(intent, 1);
+      return true;
+    } else if (itemId == R.id.help) {
+      Log.d("MainActivity@onMenuItemClick#help", "Reached help");
+      return true;
     }
+    return false;
   }
 
   @Override
@@ -368,7 +367,13 @@ public class MainActivity extends AppCompatActivity
     diff.dispatchUpdatesTo(deviceAdapter);
   }
 
-  /** Built a device map from the list of devices available, with the topic as a key. */
+  public MqttClient getMqttClient() {
+    return mqttClient;
+  }
+
+  /**
+   * Built a device map from the list of devices available, with the topic as a key.
+   */
   private void buildDeviceMap() {
     // Reset the current map
     deviceMap.clear();

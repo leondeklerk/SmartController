@@ -8,14 +8,12 @@ import androidx.preference.PreferenceManager;
 
 import com.leondeklerk.smartcontroller.data.Command;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +28,7 @@ import java.util.Map;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
-import lombok.Getter;
+import info.mqtt.android.service.MqttAndroidClient;
 
 /**
  * Class that creates a new mqtt client and handles all the connections and callbacks associated with this.
@@ -46,10 +44,13 @@ public class MqttClient implements MqttCallback {
     final String subscriptionTopic = "stat/+/RESULT";
 
     private final Map<String, ConnectionsHandler> registeredHandlers;
-    @Getter
     private ConnectionsHandler currentHandler;
     private final SharedPreferences preferences;
     private final boolean enableSSL;
+
+    public ConnectionsHandler getCurrentHandler() {
+        return currentHandler;
+    }
 
     /**
      * Private constructor for a Mqtt client. Can only be instantiated via the singleton methods.
@@ -124,7 +125,7 @@ public class MqttClient implements MqttCallback {
                             currentHandler.onMqttConnected(false);
                         }
                     });
-        } catch (MqttException ex) {
+        } catch (Exception ex) {
             Log.d("MqttClient@connect#catch2", "Error while connecting", ex);
         }
     }
@@ -217,7 +218,7 @@ public class MqttClient implements MqttCallback {
                         }
                     });
 
-        } catch (MqttException ex) {
+        } catch (Exception ex) {
             Log.d("MqttClient@subscribeToTopic#catch", "Error while subscribing", ex);
         }
     }
@@ -233,7 +234,7 @@ public class MqttClient implements MqttCallback {
                 }
             }
             Log.d("MqttClient@destroy#try", "Client destroyed");
-        } catch (MqttException e) {
+        } catch (Exception e) {
             Log.d("MqttClient@destroy#catch", "Error while destroying", e);
         }
     }
@@ -249,7 +250,7 @@ public class MqttClient implements MqttCallback {
             message.setPayload(command.getMessage().getBytes());
             client.publish(command.getTopic(), message);
             Log.d("MqttClient@publish#try", command.getMessage());
-        } catch (MqttException e) {
+        } catch (Exception e) {
             Log.d("MqttClient@publish#catch", "Error while publishing", e);
         }
     }

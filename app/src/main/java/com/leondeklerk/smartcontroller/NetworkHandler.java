@@ -7,8 +7,7 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 import android.util.Log;
-import lombok.Getter;
-import lombok.Setter;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -19,10 +18,21 @@ public class NetworkHandler extends NetworkCallback {
 
   private static NetworkHandler INSTANCE;
   private static int count = 0;
-  @Getter @Setter private ConnectionsHandler currentHandler;
+  private ConnectionsHandler currentHandler;
 
-  /** Private constructor. */
-  private NetworkHandler() {}
+  /**
+   * Private constructor.
+   */
+  private NetworkHandler() {
+  }
+
+  public ConnectionsHandler getCurrentHandler() {
+    return currentHandler;
+  }
+
+  public void setCurrentHandler(ConnectionsHandler currentHandler) {
+    this.currentHandler = currentHandler;
+  }
 
   @Override
   public void onAvailable(@NotNull Network network) {

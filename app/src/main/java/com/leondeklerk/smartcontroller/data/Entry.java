@@ -1,7 +1,6 @@
 package com.leondeklerk.smartcontroller.data;
 
 import com.leondeklerk.smartcontroller.devices.SmartDevice;
-import lombok.Getter;
 
 /**
  * A class that represents and entry in the device storage data structure. Contains a id and a
@@ -9,17 +8,25 @@ import lombok.Getter;
  * actual device that is stored.
  */
 public class Entry {
-  @Getter private int id;
-  @Getter private SmartDevice device;
+    private final int id;
+    private final SmartDevice device;
 
-  /**
-   * Default constructor
-   *
-   * @param id the id of the device in the list (MainActivity RecyclerView)
-   * @param device the device itself.
-   */
-  public Entry(int id, SmartDevice device) {
-    this.id = id;
-    this.device = device;
-  }
+    /**
+     * Default constructor
+     *
+     * @param id     the id of the device in the list (MainActivity RecyclerView)
+     * @param device the device itself.
+     */
+    public Entry(int id, SmartDevice device) {
+        this.id = id;
+        this.device = device;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public SmartDevice getDevice() {
+        return device;
+    }
 }

@@ -1,22 +1,25 @@
 package com.leondeklerk.smartcontroller;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.text.InputType;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.Preference.OnPreferenceClickListener;
@@ -57,12 +60,7 @@ public class SettingsActivity extends AppCompatActivity implements
         // setup the toolbar
         binding.toolbar.setTitle(getString(R.string.title_activity_settings));
         binding.toolbar.setNavigationOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        onBackPressed();
-                    }
-                });
+                view1 -> onBackPressed());
 
         PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
                 .registerOnSharedPreferenceChangeListener(this);
@@ -106,6 +104,7 @@ public class SettingsActivity extends AppCompatActivity implements
             this.context = context;
         }
 
+        @SuppressLint("ClickableViewAccessibility")
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -113,46 +112,57 @@ public class SettingsActivity extends AppCompatActivity implements
 
             // Find the filepicker preference and set the summary and click listener.
             filePickerPreference = findPreference("filePicker");
-            filePickerPreference.setOnPreferenceClickListener(this);
-            filePickerPreference.setSummary(preferences.getString("mqtt_file_picker_summary", ""));
+
+            if (filePickerPreference != null) {
+                filePickerPreference.setOnPreferenceClickListener(this);
+                filePickerPreference.setSummary(preferences.getString("mqtt_file_picker_summary", ""));
+            }
+
 
             final EditTextPreference preference = findPreference("mqtt_password");
 
             // Replace the values of a password field with asteriks for security.
             // Based on: https://stackoverflow.com/a/59072162/8298898
             if (preference != null) {
-                preference.setSummaryProvider(new Preference.SummaryProvider() {
-                    @Override
-                    public CharSequence provideSummary(Preference preference) {
+                preference.setSummaryProvider(preference12 -> {
 
-                        // Check if there is a value
-                        String getPassword = PreferenceManager.getDefaultSharedPreferences(getContext()).getString("mqtt_password", "Not set");
+                    // Check if there is a value
+                    String getPassword = PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("mqtt_password", "Not set");
 
-                        //we assume getPassword is not null
-                        assert getPassword != null;
-
-                        //return "not set" else return password with asterisks
-                        if (getPassword.equals("not set")) {
-                            return getPassword;
-                        } else {
-                            return (setAsterisks(getPassword.length()));
-                        }
+                    //return "not set" else return password with asterisks
+                    if (getPassword.equals("not set")) {
+                        return getPassword;
+                    } else {
+                        return (setAsterisks(getPassword.length()));
                     }
                 });
 
                 //set input type as password and set summary with asterisks the new password
                 preference.setOnBindEditTextListener(
-                        new EditTextPreference.OnBindEditTextListener() {
-                            @Override
-                            public void onBindEditText(@NonNull final EditText editText) {
-                                editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                                preference.setSummaryProvider(new Preference.SummaryProvider() {
-                                    @Override
-                                    public CharSequence provideSummary(Preference preference) {
-                                        return setAsterisks(editText.getText().toString().length());
+                        editText -> {
+                            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                            Drawable visibilityDrawable = ContextCompat.getDrawable(context, R.drawable.baseline_visibility_24);
+                            editText.setCompoundDrawablesWithIntrinsicBounds(null, null, visibilityDrawable, null);
+
+                            editText.setOnTouchListener((view, motionEvent) -> {
+                                if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                                    if (motionEvent.getRawX() >= (editText.getRight() - editText.getCompoundDrawables()[2].getBounds().width())) {
+                                        if (editText.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+                                            editText.setInputType(InputType.TYPE_CLASS_TEXT);
+                                            Drawable draw = ContextCompat.getDrawable(context, R.drawable.baseline_visibility_off_24);
+                                            editText.setCompoundDrawablesWithIntrinsicBounds(null, null, draw, null);
+                                        } else {
+                                            editText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                                            Drawable draw = ContextCompat.getDrawable(context, R.drawable.baseline_visibility_24);
+                                            editText.setCompoundDrawablesWithIntrinsicBounds(null, null, draw, null);
+                                        }
+                                        return true;
                                     }
-                                });
-                            }
+                                }
+                                return false;
+                            });
+
+                            preference.setSummaryProvider(preference1 -> setAsterisks(editText.getText().toString().length()));
                         });
             }
 
@@ -173,7 +183,7 @@ public class SettingsActivity extends AppCompatActivity implements
         }
 
         @Override
-        public boolean onPreferenceClick(Preference preference) {
+        public boolean onPreferenceClick(@NonNull Preference preference) {
             // Create an intent to open a filepicker
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -182,10 +192,12 @@ public class SettingsActivity extends AppCompatActivity implements
             intent.putExtra(Intent.EXTRA_MIME_TYPES, mimetypes);
 
             // Start the file picker
+            //noinspection deprecation
             startActivityForResult(intent, OPEN_FILE_PICKER);
             return true;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         public void onActivityResult(int requestCode, int resultCode,
                                      Intent resultData) {
