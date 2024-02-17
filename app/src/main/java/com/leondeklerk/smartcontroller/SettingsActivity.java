@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.preference.EditTextPreference;
@@ -184,6 +185,31 @@ public class SettingsActivity extends AppCompatActivity implements
 
         @Override
         public boolean onPreferenceClick(@NonNull Preference preference) {
+            if (!preferences.getString("mqtt_file_picker_summary", "").equals("")) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+                builder.setTitle(R.string.mqtt_select_certificate_title).setMessage(R.string.mqtt_select_certificate);
+
+                builder.setPositiveButton(R.string.button_select, (dialog, id) -> openFileChooser());
+
+                builder.setNegativeButton(R.string.button_delete, (dialog, id) -> {
+                    preferences.edit().putString("mqtt_file_picker_summary", "").apply();
+                    preferences.edit().putString("mqtt_cert", null).apply();
+                    filePickerPreference.setSummary("");
+                });
+
+                builder.setNeutralButton(R.string.color_cancel, (dialog, id) -> {
+
+                });
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            } else {
+                openFileChooser();
+            }
+            return true;
+        }
+
+        private void openFileChooser() {
             // Create an intent to open a filepicker
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -194,7 +220,6 @@ public class SettingsActivity extends AppCompatActivity implements
             // Start the file picker
             //noinspection deprecation
             startActivityForResult(intent, OPEN_FILE_PICKER);
-            return true;
         }
 
         @SuppressWarnings("deprecation")
@@ -208,7 +233,9 @@ public class SettingsActivity extends AppCompatActivity implements
                     Uri uri = resultData.getData();
 
                     // Get the name of the file
+                    assert uri != null;
                     Cursor cursor = requireContext().getContentResolver().query(uri, null, null, null, null);
+                    assert cursor != null;
                     int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
                     cursor.moveToFirst();
                     String fileName = cursor.getString(nameIndex);

@@ -95,6 +95,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<CardViewHolder> {
                 v -> {
                     Intent intent = new Intent(context, DeviceColorActivity.class);
                     intent.putExtra(DeviceColorActivity.EXTRA_SELECTED_DEV, position);
+                    intent.setPackage(context.getPackageName());
                     context.startActivity(intent);
                 });
 

@@ -70,4 +70,8 @@
   <string name="mqtt_username">Server username</string>
   <string name="mqtt_https">SSL connection</string>
   <string name="mqtt_ca">CA Certificate</string>
+  <string name="mqtt_select_certificate_title">CA Certificate</string>
+  <string name="mqtt_select_certificate">Do you want to select a new certificate, or delete the current certificate?</string>
+  <string name="button_select">select</string>
+  <string name="button_delete">delete</string>
 </resources>

@@ -7,11 +7,11 @@ android {
         dataBinding true
         viewBinding true
     }
-    compileSdkVersion 33
     defaultConfig {
+        compileSdk 34
         applicationId "com.leondeklerk.smartcontroller"
         minSdkVersion 28
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -25,6 +25,10 @@ android {
             pseudoLocalesEnabled true
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
     namespace 'com.leondeklerk.smartcontroller'
 }
 
@@ -34,16 +38,16 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.preference:preference-ktx:1.2.0'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    implementation 'com.google.android.material:material:1.9.0-alpha02'
-    implementation "androidx.core:core-ktx:1.9.0"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0"
-    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation "androidx.core:core-ktx:1.12.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10"
+    implementation 'com.google.code.gson:gson:2.10'
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
-    implementation 'com.github.hannesa2:paho.mqtt.android:3.5.0'
+    implementation 'com.github.hannesa2:paho.mqtt.android:3.6.1'
 }
 repositories {
     mavenCentral()
